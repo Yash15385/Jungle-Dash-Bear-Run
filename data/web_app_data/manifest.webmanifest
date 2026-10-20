@@ -1,0 +1,11 @@
+{
+  "name": "Runner Game",
+  "short_name": "Runner",
+  "description": "A colorful endless runner game",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#18283b",
+  "theme_color": "#18283b",
+  "icons": []
+}

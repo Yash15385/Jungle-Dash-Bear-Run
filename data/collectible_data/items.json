@@ -1,0 +1,10 @@
+{
+  "coin": { "value": 1, "pickupRadius": 0.75, "asset": "assets/coin.svg", "sound": "coin" },
+  "powerups": [
+    { "id": "magnet", "durationSeconds": 8, "effect": "attract nearby coins", "asset": "assets/magnet.svg" },
+    { "id": "shield", "durationSeconds": 10, "effect": "ignore one collision", "asset": "assets/shield.svg" },
+    { "id": "boost", "durationSeconds": 5, "effect": "temporary speed and score bonus", "asset": "assets/boost.svg" },
+    { "id": "multiplier", "durationSeconds": 10, "effect": "double score", "asset": "assets/multiplier.svg" },
+    { "id": "hover", "durationSeconds": 6, "effect": "stay above ground hazards", "asset": "assets/hover.svg" }
+  ]
+}

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>Road Runner - Arcade Velocity</title>
+<!-- Google Fonts: Outfit -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            outfit: ['Outfit', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              electric: '#0ea5e9',
+              teal: '#14b8a6',
+              amber: '#f59e0b',
+              navy: '#0b1329',
+            }
+          },
+          boxShadow: {
+            'glow-amber': '0 0 25px -4px rgba(245, 158, 11, 0.6), 0 8px 20px -6px rgba(217, 119, 6, 0.7)',
+            'glow-sky': '0 0 16px -2px rgba(14, 165, 233, 0.5)',
+            'glass-inset': 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Style Configurations -->
+<style data-purpose="base-layout">
+    /* Prevent bouncy drag/scroll on mobile iOS */
+    html, body {
+      overscroll-behavior: none;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Support for iOS safe area insets */
+    .safe-top {
+      padding-top: max(env(safe-area-inset-top, 16px), 16px);
+    }
+    .safe-bottom {
+      padding-bottom: max(env(safe-area-inset-bottom, 20px), 20px);
+    }
+  </style>
+<style data-purpose="glassmorphism-effects">
+    /* Dark frosted glass background system */
+    .glass-navy-pill {
+      background: rgba(11, 19, 41, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .glass-navy-button {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .glass-navy-button:active {
+      background: rgba(30, 41, 59, 0.9);
+      transform: scale(0.94);
+    }
+
+    /* 3D push-down CTA button animation */
+    .btn-3d-amber {
+      box-shadow: 0 5px 0 #b45309, 0 12px 24px rgba(245, 158, 11, 0.45);
+      transition: all 0.1s ease-in-out;
+    }
+    .btn-3d-amber:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #b45309, 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+  </style>
+<style data-purpose="custom-animations">
+    @keyframes subtle-pulse {
+      0%, 100% {
+        box-shadow: 0 5px 0 #b45309, 0 0 24px -2px rgba(245, 158, 11, 0.7);
+      }
+      50% {
+        box-shadow: 0 5px 0 #b45309, 0 0 38px 4px rgba(245, 158, 11, 0.95);
+      }
+    }
+    .pulse-glow {
+      animation: subtle-pulse 2.2s infinite ease-in-out;
+    }
+
+    /* Marquee animation for control tips if needed */
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-marquee {
+      display: inline-flex;
+      animation: marquee 12s linear infinite;
+    }
+  </style>
+<!-- END: Style Configurations -->
+</head>
+<body class="h-full bg-slate-950 font-outfit text-white flex justify-center items-center overflow-hidden">
+<!-- BEGIN: Game Portrait Frame (Mobile Viewport 390px simulated/constrained) -->
+<main class="relative w-full h-full max-w-[430px] mx-auto overflow-hidden flex flex-col justify-between" data-purpose="game-screen-container">
+<!-- BEGIN: Full Bleed Background Track Image -->
+<div class="absolute inset-0 pointer-events-none z-0" data-purpose="background-scenery">
+<img alt="Road Runner track background showing runner on 3 lanes" class="w-full h-full object-cover object-bottom" id="bg-runner-track" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHVzruPfSGqViPvMsCUdJHoAnMglq5I2OgpdBSiJVeav04FbYhiorLy_YcLdAWy4zAjLVrRpP2yFLSoa5Jdxn1fLBEYzq9vVzCnMO1e3gJvPsbwIP_tFPyXKXS8_bpfcPLuiaBut8TUT69Nzf-etDoJRRXBhDMbMw2gdJMdPuXH7JmKDyJ0PcLURF_1ki1NfMV3XcsiosgFGmTGeP37UNN8lI-vRN9ghp-JIqS3w5XgTmUAiB5pac1BQ"/>
+<!-- Gentle ambient vignettes to ensure UI read, preserving character clarity in center -->
+<div class="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-slate-950/80 via-slate-950/30 to-transparent pointer-events-none"></div>
+<div class="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-transparent pointer-events-none"></div>
+</div>
+<!-- END: Full Bleed Background Track Image -->
+<!-- BEGIN: Header Section (Top Safe Area) -->
+<header class="relative z-20 safe-top px-4 flex flex-col gap-2.5 w-full" data-purpose="game-top-bar">
+<!-- Top Row: Logo & Action Toggles -->
+<div class="flex items-center justify-between w-full">
+<!-- Game Logo Badge -->
+<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-navy-pill border border-sky-400/30 shadow-glow-sky" data-purpose="brand-logo">
+<span class="text-amber-400 text-lg leading-none select-none drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]">⚡</span>
+<span class="font-extrabold text-sm tracking-wider uppercase bg-gradient-to-r from-white via-sky-200 to-sky-400 bg-clip-text text-transparent drop-shadow-sm">
+            Road Runner
+          </span>
+</div>
+<!-- Quick Action Circular Buttons (Min 44x44px for accessibility touch target) -->
+<div class="flex items-center gap-2" data-purpose="quick-actions">
+<!-- Sound Toggle Button -->
+<button aria-label="Toggle Sound" class="w-11 h-11 rounded-full glass-navy-button flex items-center justify-center text-slate-100 shadow-lg transition-transform active:scale-90" data-purpose="audio-control" id="sound-toggle-btn" type="button">
+<!-- Speaker SVG Icon -->
+<svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+</svg>
+</button>
+<!-- Settings Button -->
+<button aria-label="Open Settings" class="w-11 h-11 rounded-full glass-navy-button flex items-center justify-center text-slate-100 shadow-lg transition-transform active:scale-90" data-purpose="settings-control" id="settings-btn" type="button">
+<!-- Gear SVG Icon -->
+<svg class="w-5 h-5 text-slate-200" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Top Center: Best Score Pill Badge -->
+<div class="self-center mt-1" data-purpose="high-score-display">
+<div class="flex items-center gap-2 px-3.5 py-1 rounded-full glass-navy-pill border border-amber-400/40 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+<span class="text-amber-400 drop-shadow-[0_0_6px_rgba(245,158,11,0.8)] text-sm">🏆</span>
+<span class="text-[11px] font-bold text-slate-300 tracking-wider uppercase">BEST SCORE:</span>
+<span class="font-extrabold text-sm tracking-wide text-amber-300 font-mono">248,920</span>
+</div>
+</div>
+</header>
+<!-- END: Header Section -->
+<!-- BEGIN: Transparent Center Canvas Area -->
+<!-- Kept completely clear of solid blocking elements to showcase the ready character & 3-lane track -->
+<div aria-hidden="true" class="relative z-10 flex-1 w-full pointer-events-none" data-purpose="visual-runner-showcase">
+<!-- Intentionally unobstructed -->
+</div>
+<!-- END: Transparent Center Canvas Area -->
+<!-- BEGIN: Bottom Floating Dock (Safe Area Friendly) -->
+<footer class="relative z-20 safe-bottom px-4 flex flex-col gap-3 w-full" data-purpose="game-start-dock">
+<!-- Compact Swipe Controls Hint Banner -->
+<div class="w-full overflow-hidden py-1.5 px-3 rounded-full glass-navy-pill border border-white/10 text-center" data-purpose="controls-hint">
+<div class="flex items-center justify-center gap-1.5 text-[11.5px] font-medium text-slate-200 tracking-tight select-none">
+<span class="text-sky-300">👆</span>
+<span><span class="text-white font-semibold">Swipe L/R</span> to Dodge</span>
+<span class="text-slate-500">•</span>
+<span><span class="text-white font-semibold">Up</span> Jump</span>
+<span class="text-slate-500">•</span>
+<span><span class="text-white font-semibold">Down</span> Slide</span>
+</div>
+</div>
+<!-- Primary CTA: Massive Glowing 3D Button -->
+<button class="w-full h-16 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 btn-3d-amber pulse-glow flex items-center justify-center gap-3 active:brightness-95 cursor-pointer relative overflow-hidden group select-none" data-purpose="primary-play-button" id="play-now-btn" type="button">
+<!-- Shimmer reflective highlight across the button surface -->
+<div class="absolute inset-0 bg-gradient-to-b from-white/35 to-transparent h-1/2 rounded-t-full pointer-events-none"></div>
+<!-- Play Icon Symbol -->
+<span class="w-8 h-8 rounded-full bg-slate-950/20 flex items-center justify-center text-slate-950 text-base font-black pl-0.5 shadow-inner">
+          ▶
+        </span>
+<!-- CTA Label -->
+<span class="text-[22px] font-black tracking-wider text-slate-950 uppercase font-outfit drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]">
+          TAP TO RUN!
+        </span>
+<!-- Right Chevrons Arrow -->
+<svg class="w-6 h-6 text-slate-950 font-extrabold transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewbox="0 0 24 24">
+<path d="M13 5l7 7-7 7M5 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<!-- Sub-row Under CTA: Economy & Streak Info -->
+<div class="flex items-center justify-between px-2 pt-0.5" data-purpose="player-stats-bar">
+<!-- Coin Counter Pill -->
+<div class="flex items-center gap-2 px-3 py-1 rounded-xl glass-navy-pill border border-amber-400/20" data-purpose="stat-coins">
+<span class="text-base leading-none">🪙</span>
+<span class="text-xs font-bold text-amber-200 font-mono tracking-wide">4,850</span>
+<span class="text-[10px] text-slate-400 font-medium uppercase tracking-tight">Coins</span>
+</div>
+<!-- Streak Counter Pill -->
+<div class="flex items-center gap-2 px-3 py-1 rounded-xl glass-navy-pill border border-orange-500/20" data-purpose="stat-streak">
+<span class="text-base leading-none drop-shadow-[0_0_6px_rgba(249,115,22,0.8)]">🔥</span>
+<span class="text-xs font-bold text-white tracking-wide">5 Days</span>
+<span class="text-[10px] text-orange-300 font-semibold uppercase tracking-tight bg-orange-500/20 px-1.5 py-0.5 rounded-md">Streak</span>
+</div>
+</div>
+</footer>
+<!-- END: Bottom Floating Dock -->
+</main>
+<!-- END: Game Portrait Frame -->
+<!-- BEGIN: Interactive Feedback Handler Script -->
+<script data-purpose="ui-interactions">
+    document.addEventListener('DOMContentLoaded', () => {
+      const playBtn = document.getElementById('play-now-btn');
+      const soundBtn = document.getElementById('sound-toggle-btn');
+      let soundEnabled = true;
+
+      // Play Now Button action with iOS haptic feedback trigger if available
+      if (playBtn) {
+        playBtn.addEventListener('click', () => {
+          if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(50);
+          }
+          playBtn.classList.add('scale-95');
+          setTimeout(() => {
+            playBtn.classList.remove('scale-95');
+          }, 120);
+        });
+      }
+
+      // Sound toggle feedback
+      if (soundBtn) {
+        soundBtn.addEventListener('click', () => {
+          soundEnabled = !soundEnabled;
+          soundBtn.classList.toggle('opacity-50', !soundEnabled);
+          if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(25);
+          }
+        });
+      }
+    });
+  </script>
+<!-- END: Interactive Feedback Handler Script -->
+</body></html>

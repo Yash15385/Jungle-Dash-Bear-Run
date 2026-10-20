@@ -1,0 +1,5 @@
+{
+  "music": "audio/loop.ogg",
+  "sounds": { "run": "audio/run.ogg", "jump": "audio/jump.ogg", "slide": "audio/slide.ogg", "coin": "audio/coin.ogg", "powerup": "audio/powerup.ogg", "hit": "audio/hit.ogg", "gameOver": "audio/game-over.ogg", "button": "audio/button.ogg" },
+  "license": "Use only original or properly licensed recordings."
+}

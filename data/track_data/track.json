@@ -1,0 +1,13 @@
+{
+  "laneCount": 3,
+  "laneCenters": [-1, 0, 1],
+  "segmentLength": 24,
+  "trackWidth": 9,
+  "laneWidth": 3,
+  "sideBarrierHeight": 0.8,
+  "segmentsAhead": 8,
+  "segmentsBehind": 2,
+  "camera": { "fov": 62, "followHeight": 4.2, "followDistance": 8, "lookAhead": 12 },
+  "materials": { "road": "#344252", "laneMarking": "#d8e1e8", "barrier": "#eaa744", "skyTop": "#68c8ef", "skyBottom": "#e6f8ff" },
+  "segmentPieces": ["straight", "barrier-left", "barrier-right", "lamp-pair", "sign-pair", "tree-pair"]
+}

@@ -1,0 +1,11 @@
+{
+  "units": "track units",
+  "catalog": [
+    { "id": "low_barrier", "action": "jump", "box": { "width": 1.8, "height": 0.65, "depth": 0.55 }, "color": "#f28d42", "asset": "assets/low-barrier.svg" },
+    { "id": "overhead_gate", "action": "slide", "box": { "width": 1.8, "height": 0.55, "depth": 0.65 }, "clearance": 1.25, "color": "#eac34c", "asset": "assets/overhead-gate.svg" },
+    { "id": "crate", "action": "dodge", "box": { "width": 1.7, "height": 1.7, "depth": 1.4 }, "color": "#ae7047", "asset": "assets/crate.svg" },
+    { "id": "track_gap", "action": "jump", "box": { "width": 2.7, "height": 0.2, "depth": 2.3 }, "color": "#202a3a", "asset": "assets/gap.svg" },
+    { "id": "moving_cart", "action": "dodge", "box": { "width": 2.4, "height": 1.6, "depth": 2 }, "color": "#497dca", "movesAcrossLanes": true, "asset": "assets/cart.svg" }
+  ],
+  "fairness": { "minReactionDistance": 11, "maxBlockedLanesPerPattern": 2, "minGapBetweenPatterns": 8 }
+}

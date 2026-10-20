@@ -1,0 +1,8 @@
+:root { --ui-ink:#f8fbff; --ui-panel:#18283bde; --ui-accent:#ffd052; --ui-radius:16px; }
+.game-ui { font-family:system-ui,sans-serif; color:var(--ui-ink); }
+.game-ui button { min-height:48px; padding:.7rem 1.2rem; border:0; border-radius:var(--ui-radius); background:var(--ui-accent); color:#293449; font:700 1rem system-ui,sans-serif; cursor:pointer; touch-action:manipulation; }
+.game-ui button:focus-visible { outline:3px solid white; outline-offset:3px; }
+.game-panel { max-width:min(92vw,420px); padding:24px; border-radius:var(--ui-radius); background:var(--ui-panel); text-align:center; box-shadow:0 14px 40px #10182755; }
+.game-hud { position:absolute; inset:env(safe-area-inset-top) 12px auto; display:flex; justify-content:space-between; gap:8px; pointer-events:none; }
+.game-hud > * { padding:10px 14px; border-radius:12px; background:var(--ui-panel); }
+@media (max-width:600px) { .game-hud { font-size:.9rem; } .game-panel { padding:20px; } }

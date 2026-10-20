@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#18283b"><meta name="description" content="A colorful endless runner game.">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="../ui_data/ui.css"><link rel="stylesheet" href="../player_data/player.css">
+  <title>Runner Game</title>
+  <style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:linear-gradient(#68c8ef,#d9f6ff 56%,#344252 56%);font-family:system-ui}#stage{height:100dvh;min-height:320px;position:relative;touch-action:none}#title{position:absolute;inset:0;display:grid;place-items:center}.game-hud{z-index:3}</style>
+</head>
+<body>
+  <main id="stage" aria-label="Runner game stage">
+    <div class="game-ui game-hud" aria-live="polite"><span>Score <b id="score">0</b></span><button id="pause" type="button" aria-label="Pause">Ⅱ</button></div>
+    <section id="title" class="game-ui"><div class="game-panel"><h1>Runner Game</h1><p>Swipe or use arrow keys to move.</p><button id="play" type="button">Play</button></div></section>
+    <div class="runner-player" id="player" aria-label="Runner character"></div>
+  </main>
+  <script type="module">import{createPlayerController}from'../player_data/player.js';const controller=createPlayerController(document.querySelector('#player'));document.querySelector('#play').addEventListener('click',()=>{document.querySelector('#title').hidden=true;controller.setPaused(false)});document.querySelector('#pause').addEventListener('click',()=>controller.setPaused(controller.state!=='idle'));</script>
+  <script>if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./service-worker.js').catch(()=>{});</script>
+</body>
+</html>

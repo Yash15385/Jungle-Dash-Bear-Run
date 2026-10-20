@@ -1,0 +1,5 @@
+{
+  "keyboard": { "left": ["ArrowLeft", "a", "A"], "right": ["ArrowRight", "d", "D"], "jump": ["ArrowUp", "w", "W", "Space"], "slide": ["ArrowDown", "s", "S"], "pause": ["Escape", "p", "P"] },
+  "touch": { "left": "swipe left", "right": "swipe right", "jump": "swipe up", "slide": "swipe down", "minimumSwipePixels": 28 },
+  "accessibility": { "onScreenButtonsRecommended": true, "minimumTouchTargetPixels": 44, "reducedMotion": "respect prefers-reduced-motion" }
+}

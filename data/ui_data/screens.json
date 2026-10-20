@@ -1,0 +1,7 @@
+{
+  "start": ["game title", "best score", "play button", "controls hint", "sound toggle"],
+  "playing": ["distance", "score", "coins", "pause button", "active power-up indicators"],
+  "paused": ["resume button", "restart button", "sound toggle", "home button"],
+  "gameOver": ["final score", "distance", "coins earned", "best score", "retry button", "home button"],
+  "optional": ["settings", "character selection", "missions", "reward summary"]
+}

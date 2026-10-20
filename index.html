@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10251d">
+  <meta name="description" content="A jungle-themed endless runner browser game.">
+  <title>Jungle Dash</title>
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <main class="game-shell" id="gameShell">
+    <canvas id="game" aria-label="Jungle Dash game. Swipe or use arrow keys to avoid obstacles and collect coins."></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <header class="hud" id="hud" hidden>
+      <div class="hud-pill score-pill"><span class="hud-label">SCORE</span><strong id="score">0</strong><span class="hud-divider"></span><span class="hud-label">DIST</span><strong><span id="distance">0</span><small>m</small></strong></div>
+      <div class="hud-right">
+        <div class="hud-pill coin-pill"><span class="coin-icon">✦</span><strong id="coins">0</strong></div>
+        <button class="icon-button" id="pauseButton" aria-label="Pause game" title="Pause">Ⅱ</button>
+      </div>
+    </header>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <section class="screen start-screen" id="startScreen" aria-labelledby="gameTitle">
+      <div class="brand-row"><span class="brand-mark">JD</span><div><p class="eyebrow">JUNGLE RUNNER</p><h1 id="gameTitle">Jungle <em>Dash</em></h1></div><button class="icon-button settings-top" data-open-settings aria-label="Settings" title="Settings">⚙</button></div>
+      <div class="start-spacer"></div>
+      <div class="title-card glass-card">
+        <span class="tag"><span class="live-dot"></span> THE CANOPY TRAIL</span>
+        <h2>Run wild.<br><span>Stay untamed.</span></h2>
+        <p>Dodge ancient ruins, leap jungle roots, and collect golden fruit along the trail.</p>
+        <div class="best-line"><span>BEST RUN</span><strong><span id="bestStart">0</span><small> m</small></strong></div>
+        <button class="primary-button" id="playButton"><span class="play-glyph">▶</span> START RUN <span class="button-arrow">↗</span></button>
+      </div>
+      <div class="controls-hint"><span>← →</span> CHANGE LANE <i>·</i> <span>↑</span> JUMP <i>·</i> <span>↓</span> SLIDE</div>
+      <div class="bottom-note">A LITTLE ADVENTURE GOES A LONG WAY</div>
+    </section>
+
+    <section class="screen modal-screen" id="pauseScreen" hidden aria-labelledby="pauseTitle">
+      <div class="modal-card glass-card"><div class="modal-icon">Ⅱ</div><p class="eyebrow">CATCH YOUR BREATH</p><h2 id="pauseTitle">Run paused</h2><p class="modal-copy">The jungle can wait a moment.</p><button class="primary-button" id="resumeButton">▶ &nbsp; KEEP RUNNING</button><button class="secondary-button" id="restartButton">↻ &nbsp; RESTART RUN</button><button class="text-button" data-open-settings>⚙ &nbsp; SETTINGS</button></div>
+    </section>
+
+    <section class="screen modal-screen" id="gameOverScreen" hidden aria-labelledby="overTitle">
+      <div class="modal-card result-card glass-card"><div class="result-medal">✦</div><p class="eyebrow">TRAIL COMPLETE</p><h2 id="overTitle">Nice run!</h2><p class="modal-copy" id="resultMessage">The jungle is calling you back.</p>
+        <div class="result-score"><span>YOUR SCORE</span><strong id="finalScore">0</strong></div>
+        <div class="result-stats"><div><span>DISTANCE</span><strong><b id="finalDistance">0</b> m</strong></div><div><span>FRUIT</span><strong><b id="finalCoins">0</b> ✦</strong></div></div>
+        <button class="primary-button" id="runAgainButton">↻ &nbsp; RUN AGAIN</button><button class="secondary-button" id="homeButton">⌂ &nbsp; HOME</button>
+      </div>
+    </section>
+
+    <section class="screen modal-screen" id="settingsScreen" hidden aria-labelledby="settingsTitle">
+      <div class="modal-card glass-card settings-card"><button class="close-button" id="closeSettings" aria-label="Back">←</button><p class="eyebrow">MAKE IT YOURS</p><h2 id="settingsTitle">Settings</h2>
+        <label class="setting-row"><span><strong>Sound effects</strong><small>Game sounds and pickups</small></span><input type="checkbox" id="soundToggle" checked><span class="switch"></span></label>
+        <div class="setting-help"><strong>CONTROLS</strong><p>Swipe or use arrow keys. Jump over roots and slide under vines. Crates and carts need a lane change.</p></div>
+        <button class="primary-button" id="settingsDone">DONE</button>
+      </div>
+    </section>
+
+    <div class="touch-hint" id="touchHint" hidden>SWIPE TO MOVE <span>↑ JUMP</span> <span>↓ SLIDE</span></div>
+  </main>
+  <script type="module" src="src/game.js"></script>
+</body>
+</html>

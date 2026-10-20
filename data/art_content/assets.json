@@ -1,0 +1,8 @@
+{
+  "player": ["../player_data/player-sprites.svg"],
+  "track": ["../track_data/assets/tree.svg", "../track_data/assets/sign.svg"],
+  "obstacles": ["../obstacle_data/assets/low-barrier.svg", "../obstacle_data/assets/overhead-gate.svg", "../obstacle_data/assets/crate.svg", "../obstacle_data/assets/gap.svg", "../obstacle_data/assets/cart.svg"],
+  "collectibles": ["../collectible_data/assets/coin.svg", "../collectible_data/assets/magnet.svg", "../collectible_data/assets/shield.svg", "../collectible_data/assets/boost.svg", "../collectible_data/assets/multiplier.svg", "../collectible_data/assets/hover.svg"],
+  "fonts": [],
+  "soundFilesIncluded": false
+}

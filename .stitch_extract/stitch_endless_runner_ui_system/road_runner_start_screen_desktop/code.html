@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Road Runner - Desktop Start Screen</title>
+<!-- BEGIN: Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- END: Google Fonts -->
+<!-- BEGIN: Tailwind CSS Script with Form & Container Query Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- END: Tailwind CSS Script -->
+<!-- BEGIN: Tailwind Custom Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Fredoka', 'sans-serif'],
+            body: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              navy: '#0b1329',
+              darkNavy: '#070c1b',
+              electricCyan: '#00e5ff',
+              neonTeal: '#00f5c4',
+              arcadeOrange: '#ff6b00',
+              arcadeAmber: '#ff9800',
+              sunYellow: '#ffd600',
+            }
+          },
+          boxShadow: {
+            'arcade-btn': '0 8px 0 #c2410c, 0 16px 25px -4px rgba(249, 115, 22, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4)',
+            'arcade-btn-active': '0 2px 0 #c2410c, 0 8px 15px -2px rgba(249, 115, 22, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.2)',
+            'neon-glow': '0 0 25px rgba(0, 229, 255, 0.35)',
+            'kbd-shadow': '0 3px 0 #1e293b, 0 4px 6px rgba(0, 0, 0, 0.25)',
+          }
+        }
+      }
+    };
+  </script>
+<!-- END: Tailwind Custom Configuration -->
+<!-- BEGIN: Custom CSS Styling -->
+<style data-purpose="custom-keyframes">
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 8px 0 #c2410c, 0 12px 30px rgba(255, 107, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+      }
+      50% {
+        box-shadow: 0 8px 0 #c2410c, 0 16px 45px rgba(255, 152, 0, 0.85), inset 0 2px 6px rgba(255, 255, 255, 0.7);
+      }
+    }
+
+    .hero-play-pulse {
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+
+    .glass-navy {
+      background: rgba(7, 12, 27, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .glass-navy-subtle {
+      background: rgba(11, 19, 41, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+<!-- END: Custom CSS Styling -->
+</head>
+<body class="h-full bg-slate-950 font-body text-slate-100 overflow-hidden select-none m-0 p-0 flex flex-col justify-between">
+<!-- BEGIN: Game Canvas Background Backdrop -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none" data-purpose="game-backdrop-container">
+<!-- Full-bleed cinematic 16:9 3D Runner image background -->
+<img alt="Cheerful, vibrant, colorful 3D animated endless runner game scene background in landscape 16:9 orientation. A lively stylized young athletic runner character standing on a colorful three-lane track with glowing neon markings and sunny coastal scenery, palm trees, futuristic arcade barriers, golden coins hovering, bright blue sky, sunny cheerful lighting, clean high fidelity game art render, wide cinematic view showing the 3 lanes." class="w-full h-full object-cover object-center transform scale-100 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPLliQXRYTIV5lG1df77qipdot2pXxa7aPqwGBsA8IsYtMpAr1Sq3bFvfbEsWnFK954oIjZdoA9x73y4caNs4jY1XdbxeZPSjgN4cHYzHEsPW5jjAmg9QkccYfiz6_uCJwGZoD840EdkR5ovze28_q3wXJGfVTf2C1kDZaHLFA80GD2moLTKO4zi-yJHPNAsiumLub8E2_PEUR9TXZot_-_V4hgGD4Js8jVcULl0aeb2-8ChlAYXmj4A"/>
+<!-- Top & bottom soft ambient gradient vignettes to amplify UI readability while preserving runner visibility -->
+<div class="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-slate-950/80 via-slate-950/30 to-transparent pointer-events-none"></div>
+<div class="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent pointer-events-none"></div>
+</div>
+<!-- END: Game Canvas Background Backdrop -->
+<!-- BEGIN: Top Navigation Bar -->
+<header class="relative z-20 w-full pt-4 px-6 max-w-7xl mx-auto flex items-center justify-between gap-4" data-purpose="top-navigation-deck">
+<!-- Left Logo & Branding -->
+<div class="flex items-center gap-3 glass-navy px-4 py-2.5 rounded-2xl shadow-neon-glow transition-all hover:border-cyan-400/40">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-md shadow-cyan-500/30 text-xl font-black text-slate-950 transform -rotate-3 hover:rotate-0 transition-transform">
+        ⚡
+      </div>
+<div>
+<div class="flex items-center gap-1.5 leading-none">
+<span class="font-display font-extrabold text-2xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-teal-200 to-amber-300 drop-shadow-sm">
+            ROAD RUNNER
+          </span>
+<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 uppercase tracking-widest">
+            3D
+          </span>
+</div>
+<p class="text-[11px] font-semibold text-cyan-200/70 tracking-wide mt-0.5">Arcade Velocity Tour</p>
+</div>
+</div>
+<!-- Center High Score & Live Currencies Stats Deck -->
+<div class="hidden md:flex items-center gap-3">
+<!-- High Score Pill -->
+<div class="glass-navy px-4 py-2 rounded-2xl flex items-center gap-2.5 border-amber-400/30 shadow-lg shadow-black/20">
+<span class="text-xl">🏆</span>
+<div>
+<span class="block text-[10px] font-extrabold text-amber-300 uppercase tracking-widest leading-none">High Score</span>
+<span class="font-display font-bold text-lg text-amber-100 tracking-wide leading-tight">248,920 <span class="text-xs text-amber-300/80 font-normal">pts</span></span>
+</div>
+</div>
+<!-- Currency Pill: Coins -->
+<div class="glass-navy px-3.5 py-2 rounded-2xl flex items-center gap-2 border-yellow-400/20 shadow-md">
+<span class="text-lg animate-bounce">🪙</span>
+<span class="font-display font-bold text-sm text-yellow-300 tracking-wide">4,850</span>
+</div>
+<!-- Currency Pill: Gems -->
+<div class="glass-navy px-3.5 py-2 rounded-2xl flex items-center gap-2 border-cyan-400/20 shadow-md">
+<span class="text-lg">💎</span>
+<span class="font-display font-bold text-sm text-cyan-300 tracking-wide">128</span>
+</div>
+</div>
+<!-- Right Quick Actions (Accessible >= 44px icon buttons) -->
+<div class="flex items-center gap-2.5">
+<!-- Audio Toggle Button -->
+<button aria-label="Toggle Sound" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl glass-navy hover:bg-slate-800/80 active:scale-95 text-cyan-300 hover:text-white transition-all flex items-center justify-center border border-white/10 hover:border-cyan-400/40 shadow-sm" data-purpose="sound-control-button" id="btn-sound-toggle" title="Mute / Unmute Audio" type="button">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5 9.07l-3.5-3.5H4v6.6l4 3.5 4-3.5V12.3zM16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"></path>
+</svg>
+</button>
+<!-- Settings Button -->
+<button aria-label="Game Settings" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl glass-navy hover:bg-slate-800/80 active:scale-95 text-cyan-300 hover:text-white transition-all flex items-center justify-center border border-white/10 hover:border-cyan-400/40 shadow-sm" data-purpose="settings-button" id="btn-settings" title="Settings &amp; Keybinds" type="button">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path>
+</svg>
+</button>
+<!-- Fullscreen Toggle Button -->
+<button aria-label="Toggle Fullscreen" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl glass-navy hover:bg-slate-800/80 active:scale-95 text-cyan-300 hover:text-white transition-all flex items-center justify-center border border-white/10 hover:border-cyan-400/40 shadow-sm" data-purpose="fullscreen-button" id="btn-fullscreen-toggle" title="Toggle Fullscreen (F11)" type="button">
+<svg class="w-5 h-5 fill-current" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path>
+</svg>
+</button>
+</div>
+</header>
+<!-- END: Top Navigation Bar -->
+<!-- BEGIN: Central Visual Safezone (Character Visibility Area) -->
+<!-- Note: This spacious flex-grow area keeps the 3-lane middle track & runner character completely unobscured -->
+<main class="relative z-10 flex-grow flex items-center justify-center pointer-events-none px-4">
+<!-- Uncluttered scenic viewport allows background runner to shine -->
+</main>
+<!-- END: Central Visual Safezone -->
+<!-- BEGIN: Bottom Interaction Deck & Hero CTA -->
+<section class="relative z-20 pb-5 px-6 max-w-7xl mx-auto w-full flex flex-col items-center" data-purpose="interaction-control-deck">
+<!-- Primary Hero Play Button Pod -->
+<div class="flex flex-col items-center mb-3">
+<button class="group hero-play-pulse relative w-80 md:w-[340px] h-[70px] min-h-[56px] rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:via-orange-500 hover:to-amber-500 text-white font-display font-black text-2xl tracking-wider uppercase flex items-center justify-center gap-3 shadow-arcade-btn active:shadow-arcade-btn-active active:translate-y-1.5 transition-all duration-150 cursor-pointer border-2 border-yellow-200/50" data-purpose="primary-play-cta" id="btn-play-hero" type="button">
+<!-- Triangle Play Glyph -->
+<span class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
+          ▶
+        </span>
+<span class="drop-shadow-md">PLAY NOW</span>
+<span class="text-xs font-body font-bold py-1 px-2.5 rounded-lg bg-black/25 text-amber-200 border border-white/20 tracking-wider">
+          SPACE
+        </span>
+</button>
+</div>
+<!-- Desktop Keyboard Controls Hint Panel -->
+<div class="glass-navy-subtle px-5 py-2.5 rounded-2xl border border-white/10 shadow-lg max-w-2xl w-full flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-300 font-semibold mb-3" data-purpose="controls-guide-bar">
+<!-- Steer Lanes Group -->
+<div class="flex items-center gap-1.5">
+<span class="text-cyan-400 font-bold uppercase tracking-wider text-[11px] mr-0.5">Steer</span>
+<kbd class="px-2 py-0.5 bg-slate-800 text-cyan-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-xs">A</kbd>
+<kbd class="px-2 py-0.5 bg-slate-800 text-cyan-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-xs">D</kbd>
+<span class="text-slate-400 text-[10px]">or</span>
+<kbd class="px-1.5 py-0.5 bg-slate-800 text-cyan-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-xs">◀</kbd>
+<kbd class="px-1.5 py-0.5 bg-slate-800 text-cyan-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-xs">▶</kbd>
+</div>
+<span class="text-slate-600 hidden sm:inline">•</span>
+<!-- Jump Group -->
+<div class="flex items-center gap-1.5">
+<span class="text-amber-400 font-bold uppercase tracking-wider text-[11px] mr-0.5">Jump</span>
+<kbd class="px-2 py-0.5 bg-slate-800 text-amber-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-xs">W</kbd>
+<span class="text-slate-400 text-[10px]">/</span>
+<kbd class="px-1.5 py-0.5 bg-slate-800 text-amber-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-xs">▲</kbd>
+<span class="text-slate-400 text-[10px]">/</span>
+<kbd class="px-2.5 py-0.5 bg-slate-800 text-amber-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-[11px]">SPACE</kbd>
+</div>
+<span class="text-slate-600 hidden sm:inline">•</span>
+<!-- Slide Group -->
+<div class="flex items-center gap-1.5">
+<span class="text-emerald-400 font-bold uppercase tracking-wider text-[11px] mr-0.5">Slide</span>
+<kbd class="px-2 py-0.5 bg-slate-800 text-emerald-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-xs">S</kbd>
+<span class="text-slate-400 text-[10px]">or</span>
+<kbd class="px-1.5 py-0.5 bg-slate-800 text-emerald-200 rounded font-mono font-bold shadow-kbd-shadow border border-slate-600 text-xs">▼</kbd>
+</div>
+</div>
+<!-- Side Floating Status Dock: Daily Streak & Engine Info -->
+<div class="w-full flex items-center justify-between text-xs text-slate-300">
+<!-- Bottom Left: Daily Streak Badge -->
+<div class="glass-navy-subtle px-3.5 py-1.5 rounded-xl border border-orange-500/20 flex items-center gap-2 hover:border-orange-500/40 transition-colors shadow-sm" data-purpose="streak-pill">
+<span class="text-base">🔥</span>
+<span class="font-bold text-slate-200">5-Day Run Streak</span>
+<span class="text-orange-400 font-medium hidden sm:inline">• Next: 2x Coin Boost</span>
+</div>
+<!-- Bottom Right: Engine & Browser Performance Badge -->
+<div class="glass-navy-subtle px-3.5 py-1.5 rounded-xl border border-teal-500/20 flex items-center gap-2 text-slate-300 font-medium shadow-sm" data-purpose="engine-pill">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="font-bold text-teal-300">60 FPS</span>
+<span class="text-slate-400 hidden sm:inline">WebGL Engine • Chrome / Edge / Safari</span>
+</div>
+</div>
+</section>
+<!-- END: Bottom Interaction Deck & Hero CTA -->
+<!-- BEGIN: Interactive Logic Script -->
+<script data-purpose="keyboard-play-trigger">
+    // Spacebar listener to launch the game smoothly matching the button cue
+    document.addEventListener('keydown', function(event) {
+      if (event.code === 'Space' && !event.repeat) {
+        event.preventDefault();
+        const playBtn = document.getElementById('btn-play-hero');
+        if (playBtn) {
+          playBtn.classList.add('translate-y-1.5');
+          setTimeout(() => {
+            playBtn.classList.remove('translate-y-1.5');
+            console.log('Game Started via Keyboard [SPACE]');
+          }, 150);
+        }
+      }
+    });
+
+    // Sound toggle interactive state feedback
+    const soundBtn = document.getElementById('btn-sound-toggle');
+    let isMuted = false;
+    soundBtn.addEventListener('click', () => {
+      isMuted = !isMuted;
+      soundBtn.style.opacity = isMuted ? '0.6' : '1.0';
+    });
+
+    // Fullscreen toggle interactive helper
+    const fullscreenBtn = document.getElementById('btn-fullscreen-toggle');
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.warn('Fullscreen request denied:', err);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+  </script>
+<!-- END: Interactive Logic Script -->
+</body></html>

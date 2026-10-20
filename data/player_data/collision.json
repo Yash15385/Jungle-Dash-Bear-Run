@@ -1,0 +1,13 @@
+{
+  "coordinateSystem": "normalized player-local units; origin at feet, x centered",
+  "laneCount": 3,
+  "initialLane": 1,
+  "laneGapPercentOfTrackWidth": 22,
+  "boxes": {
+    "upright": { "x": -0.28, "y": 0.04, "width": 0.56, "height": 0.88 },
+    "jump": { "x": -0.28, "y": 0.04, "width": 0.56, "height": 0.88 },
+    "slide": { "x": -0.38, "y": 0.02, "width": 0.76, "height": 0.48 },
+    "hit": { "x": -0.3, "y": 0.04, "width": 0.6, "height": 0.84 }
+  },
+  "notes": "Scale box dimensions by the rendered upright character height. Tune against obstacle hitboxes during gameplay."
+}

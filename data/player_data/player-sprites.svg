@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="128" viewBox="0 0 640 128">
+  <title>Five-pose original friendly brown bear runner sprite sheet</title>
+  <defs>
+    <linearGradient id="fur" x2="0" y2="1"><stop stop-color="#a9553e"/><stop offset="1" stop-color="#773528"/></linearGradient>
+    <linearGradient id="belly" x2="0" y2="1"><stop stop-color="#fff1b5"/><stop offset="1" stop-color="#e9c978"/></linearGradient>
+    <g id="bear-head">
+      <!-- Rounded ears and head -->
+      <circle cx="43" cy="17" r="12" fill="#773528" stroke="#4b2925" stroke-width="3"/><circle cx="43" cy="17" r="6" fill="#e79a78"/>
+      <circle cx="85" cy="17" r="12" fill="#773528" stroke="#4b2925" stroke-width="3"/><circle cx="85" cy="17" r="6" fill="#e79a78"/>
+      <path d="M35 39Q35 14 64 14T93 39q0 29-29 30T35 39Z" fill="url(#fur)" stroke="#4b2925" stroke-width="3"/>
+      <!-- Eyes, cream muzzle, nose, and smile -->
+      <ellipse cx="52" cy="36" rx="3.2" ry="4" fill="#241b1a"/><ellipse cx="76" cy="36" rx="3.2" ry="4" fill="#241b1a"/>
+      <ellipse cx="64" cy="47" rx="19" ry="14" fill="url(#belly)" stroke="#d2a45e" stroke-width="1.5"/>
+      <ellipse cx="64" cy="43" rx="6.5" ry="4.5" fill="#34211f"/>
+      <path d="M64 47v5m0 0q-6 7-11 0m11 0q6 7 11 0" fill="none" stroke="#58312a" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="46" cy="45" r="3" fill="#e98776" opacity=".75"/><circle cx="82" cy="45" r="3" fill="#e98776" opacity=".75"/>
+    </g>
+    <g id="bear-body">
+      <path d="M45 64Q64 57 83 64l6 30q-5 12-25 12T39 94Z" fill="url(#fur)" stroke="#4b2925" stroke-width="3"/>
+      <ellipse cx="64" cy="84" rx="14" ry="19" fill="url(#belly)" stroke="#d2a45e" stroke-width="1.5"/>
+      <path d="M42 95q-3 12 2 17 6 5 16 0l1-11m12 0 1 11q10 5 16 0 5-5 2-17" fill="#773528" stroke="#4b2925" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M46 71q-10 3-13 15m48-15q10 3 13 15" fill="none" stroke="#4b2925" stroke-width="10" stroke-linecap="round"/>
+      <path d="M34 86q-6 2-4 7 4 5 10 0m52-7q6 2 4 7-4 5-10 0" fill="#a9553e" stroke="#4b2925" stroke-width="2"/>
+    </g>
+    <g id="bear-shadow"><ellipse cx="64" cy="119" rx="27" ry="5" fill="#19283a" opacity=".16"/></g>
+  </defs>
+  <!-- RUN: jaunty tilt and lifted feet -->
+  <g transform="translate(0)">
+    <use href="#bear-shadow"/>
+    <path d="M48 99q-7 8-8 13 8 5 18-1l4-9m14-3q8 3 13 10-5 7-17 3l-6-8" fill="#773528" stroke="#4b2925" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M45 70q-12-1-17 7m55-7q10-1 16 7" fill="none" stroke="#4b2925" stroke-width="10" stroke-linecap="round"/>
+    <use href="#bear-body"/><use href="#bear-head"/>
+    <path d="M34 82l-5 5m65-5 5 5" stroke="#d77958" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <!-- JUMP: arms lifted, feet tucked -->
+  <g transform="translate(128)">
+    <ellipse cx="64" cy="119" rx="23" ry="4" fill="#19283a" opacity=".12"/>
+    <path d="M48 94q-10 1-10 9 7 7 18 2l7-7m13-4q10 1 10 9-7 7-18 2l-7-7" fill="#773528" stroke="#4b2925" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M45 70Q30 62 29 49m54 21q15-8 16-21" fill="none" stroke="#4b2925" stroke-width="10" stroke-linecap="round"/>
+    <use href="#bear-body"/><use href="#bear-head"/>
+    <path d="M29 49l-3-7m73 7 3-7" stroke="#d77958" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <!-- SLIDE: low crouch with head and body tucked -->
+  <g transform="translate(256)">
+    <ellipse cx="64" cy="119" rx="30" ry="4" fill="#19283a" opacity=".13"/>
+    <path d="M48 91q-11 9-19 13 2 7 12 5l20-11m14-7q13 3 24 9-1 7-12 5L69 98" fill="#773528" stroke="#4b2925" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M44 79q-15 2-22 9m62-9q13 2 20 9" fill="none" stroke="#4b2925" stroke-width="10" stroke-linecap="round"/>
+    <g transform="translate(0 8) scale(1 .9)"><use href="#bear-body"/><use href="#bear-head"/></g>
+    <path d="M23 88l-5 4m91-4 5 4" stroke="#d77958" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <!-- HIT: startled expression and wobbly pose -->
+  <g transform="translate(384)">
+    <use href="#bear-shadow"/>
+    <path d="M48 99q-9 9-8 14 9 5 18-2l4-8m14-4q9 4 14 11-6 7-17 2l-6-8" fill="#773528" stroke="#4b2925" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M45 70q-14 4-18 15m58-15q14 4 18 15" fill="none" stroke="#4b2925" stroke-width="10" stroke-linecap="round"/>
+    <use href="#bear-body"/><use href="#bear-head"/>
+    <path d="M22 30l-6-5m96 5 6-5M20 51l-8 1m104-1 8 1" stroke="#f5bf4f" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="52" cy="36" rx="4" ry="5" fill="#241b1a"/><ellipse cx="76" cy="36" rx="4" ry="5" fill="#241b1a"/>
+  </g>
+  <!-- IDLE: centered relaxed bear -->
+  <g transform="translate(512)">
+    <use href="#bear-shadow"/><use href="#bear-body"/><use href="#bear-head"/>
+    <path d="M52 104q12 5 24 0" fill="none" stroke="#d2a45e" stroke-width="2" opacity=".8"/>
+  </g>
+</svg>
