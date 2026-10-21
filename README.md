@@ -1,4 +1,4 @@
-# Jungle Dash prototype
+# Jungle Dash
 
 A responsive, framework-free browser prototype inspired by the Stitch UI screens in `stitch_endless_runner_ui_system.zip`. The UI follows their bold rounded buttons, compact HUD pills, and translucent panels, with a jungle palette and a custom canvas-rendered canopy trail.
 
