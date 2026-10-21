@@ -13,6 +13,9 @@ const game = {
   lastTime: 0, width: 0, height: 0, dpr: 1, soundReady: false, toastTimer: 0,
 };
 let audioContext;
+const HORIZON_RATIO = .39;
+const RUNNER_GROUND_RATIO = .81;
+const RUNNER_ROAD_DEPTH = Math.pow((RUNNER_GROUND_RATIO-HORIZON_RATIO)/(1-HORIZON_RATIO),1/1.65);
 
 const bestScore = () => Number(localStorage.getItem('jungle-dash-best') || 0);
 const laneX = lane => lane - 1;
@@ -83,8 +86,12 @@ function drawJungle() {
   for(let side=0;side<2;side++){const x=side?w*.98:w*.02;for(let j=0;j<5;j++){const y=h*(.62+j*.1)+((game.distance*5+j*61)%85);ctx.save();ctx.translate(x,y);ctx.scale(side?-1:1,1);ctx.fillStyle=j%2?'#246c42':'#39844a';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(-30,-28,-49,-3);ctx.quadraticCurveTo(-28,9,0,0);ctx.quadraticCurveTo(-26,17,-38,25);ctx.quadraticCurveTo(-14,24,0,0);ctx.fill();ctx.restore();}}
 }
 function project(distance, lane) {
-  const w=game.width,h=game.height,p=Math.max(0,Math.min(1,1-distance/90));
-  const horizon=h*.39;const y=horizon+Math.pow(p,1.65)*(h-horizon);
+  const w=game.width,h=game.height;
+  // The runner's ground point is the near edge of the playable perspective.
+  // Obstacles reach that same row at distance zero, instead of sliding below the runner.
+  const approach=Math.max(0,Math.min(1,1-distance/90));
+  const p=RUNNER_ROAD_DEPTH*approach;
+  const horizon=h*HORIZON_RATIO;const y=horizon+Math.pow(p,1.65)*(h-horizon);
   const trackHalf=w*(.09+.47*p);const laneSpacing=trackHalf*2/3;
   const x=w*.5+laneX(lane)*laneSpacing;
   return {x,y,p,scale:.35+p*1.45};
@@ -121,13 +128,16 @@ function drawCoin(obj) {
 }
 function drawPlayer(dt) {
   const w=game.width,h=game.height;game.visualLane+=(game.lane-game.visualLane)*Math.min(1,dt*12);
-  const p=project(0,game.visualLane);const baseY=h*.81;const bob=game.state==='playing'&&game.jump<=0&&game.slide<=0?Math.sin(performance.now()*.012)*3:0;
+  const baseY=h*RUNNER_GROUND_RATIO;
+  const roadHalf=w*(.09+.47*RUNNER_ROAD_DEPTH);
+  const playerX=w*.5+laneX(game.visualLane)*roadHalf*2/3;
+  const bob=game.state==='playing'&&game.jump<=0&&game.slide<=0?Math.sin(performance.now()*.012)*3:0;
   let y=baseY-bob;if(game.jump>0)y-=Math.sin((1-game.jump/.68)*Math.PI)*h*.17;
   const width=Math.min(148,w*.29);const height=width;
-  if(bear.complete&&bear.naturalWidth){let frame=0;if(game.state==='over')frame=3;else if(game.slide>0)frame=2;else if(game.jump>0)frame=1;else if(game.state!=='playing')frame=4;ctx.drawImage(bear,frame*128,0,128,128,p.x-width*.5,y-height*.72,width,height);}
-  else {ctx.fillStyle='#9e543b';ctx.beginPath();ctx.ellipse(p.x,y-40,33,42,0,0,Math.PI*2);ctx.fill();}
+  if(bear.complete&&bear.naturalWidth){let frame=0;if(game.state==='over')frame=3;else if(game.slide>0)frame=2;else if(game.jump>0)frame=1;else if(game.state!=='playing')frame=4;ctx.drawImage(bear,frame*128,0,128,128,playerX-width*.5,y-height*.9,width,height);}
+  else {ctx.fillStyle='#9e543b';ctx.beginPath();ctx.ellipse(playerX,y-40,33,42,0,0,Math.PI*2);ctx.fill();}
   // Small runner ground shadow
-  ctx.fillStyle='#17241b66';ctx.beginPath();ctx.ellipse(p.x,baseY+8,28,7,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#17241b66';ctx.beginPath();ctx.ellipse(playerX,baseY+5,28,7,0,0,Math.PI*2);ctx.fill();
 }
 function render(dt) {
   ctx.clearRect(0,0,game.width,game.height);drawJungle();
