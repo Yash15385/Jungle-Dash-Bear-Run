@@ -1,11 +1,57 @@
 {
   "units": "track units",
   "catalog": [
-    { "id": "low_barrier", "action": "jump", "box": { "width": 1.8, "height": 0.65, "depth": 0.55 }, "color": "#f28d42", "asset": "assets/low-barrier.svg" },
-    { "id": "overhead_gate", "action": "slide", "box": { "width": 1.8, "height": 0.55, "depth": 0.65 }, "clearance": 1.25, "color": "#eac34c", "asset": "assets/overhead-gate.svg" },
-    { "id": "crate", "action": "dodge", "box": { "width": 1.7, "height": 1.7, "depth": 1.4 }, "color": "#ae7047", "asset": "assets/crate.svg" },
-    { "id": "track_gap", "action": "jump", "box": { "width": 2.7, "height": 0.2, "depth": 2.3 }, "color": "#202a3a", "asset": "assets/gap.svg" },
-    { "id": "moving_cart", "action": "dodge", "box": { "width": 2.4, "height": 1.6, "depth": 2 }, "color": "#497dca", "movesAcrossLanes": true, "asset": "assets/cart.svg" }
+    {
+      "id": "single_jump",
+      "category": "single_story",
+      "action": "jump",
+      "stories": 1,
+      "box": { "width": 1.9, "height": 0.7, "depth": 0.8 },
+      "color": "#a87948",
+      "asset": "assets/low-barrier.svg"
+    },
+    {
+      "id": "two_story_ladder",
+      "category": "two_story_climbable",
+      "action": "climb",
+      "stories": 2,
+      "ladder": true,
+      "box": { "width": 1.4, "height": 2.2, "depth": 1.1 },
+      "color": "#95623d",
+      "asset": "assets/crate.svg"
+    },
+    {
+      "id": "two_story_solid",
+      "category": "two_story_blocking",
+      "action": "dodge",
+      "stories": 2,
+      "ladder": false,
+      "box": { "width": 1.4, "height": 2.2, "depth": 1.1 },
+      "color": "#70472f",
+      "asset": "assets/crate.svg"
+    },
+    {
+      "id": "single_underpass",
+      "category": "slide_under",
+      "action": "slide",
+      "stories": 1,
+      "bottomGap": true,
+      "clearance": 1.25,
+      "box": { "width": 2.1, "height": 1.75, "depth": 0.5 },
+      "color": "#c18a50",
+      "asset": "assets/overhead-gate.svg"
+    },
+    {
+      "id": "two_story_underpass",
+      "category": "slide_under",
+      "action": "slide",
+      "stories": 2,
+      "bottomGap": true,
+      "clearance": 1.25,
+      "box": { "width": 2.1, "height": 2.4, "depth": 0.5 },
+      "color": "#916740",
+      "asset": "assets/overhead-gate.svg"
+    }
   ],
   "fairness": { "minReactionDistance": 11, "maxBlockedLanesPerPattern": 2, "minGapBetweenPatterns": 8 }
 }

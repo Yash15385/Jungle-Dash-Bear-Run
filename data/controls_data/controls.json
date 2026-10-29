@@ -1,5 +1,6 @@
 {
-  "keyboard": { "left": ["ArrowLeft", "a", "A"], "right": ["ArrowRight", "d", "D"], "jump": ["ArrowUp", "w", "W", "Space"], "slide": ["ArrowDown", "s", "S"], "pause": ["Escape", "p", "P"] },
-  "touch": { "left": "swipe left", "right": "swipe right", "jump": "swipe up", "slide": "swipe down", "minimumSwipePixels": 28 },
+  "keyboard": { "left": ["ArrowLeft", "a", "A"], "right": ["ArrowRight", "d", "D"], "jumpOrClimb": ["ArrowUp", "w", "W", "Space"], "slide": ["ArrowDown", "s", "S"], "pause": ["Escape", "p", "P"] },
+  "touch": { "left": "swipe left", "right": "swipe right", "jumpOrClimb": "swipe up", "slide": "swipe down", "minimumSwipePixels": 28 },
+  "context": { "upAction": "Jump normally; when a ladder tower is close in the current lane, climb it instead." },
   "accessibility": { "onScreenButtonsRecommended": true, "minimumTouchTargetPixels": 44, "reducedMotion": "respect prefers-reduced-motion" }
 }

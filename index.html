@@ -10,7 +10,9 @@
 </head>
 <body>
   <main class="game-shell" id="gameShell">
-    <canvas id="game" aria-label="Jungle Dash game. Swipe or use arrow keys to avoid obstacles and collect coins."></canvas>
+    <canvas id="game" class="game-layer" aria-hidden="true"></canvas>
+    <canvas id="scene3d" class="game-layer scene-layer" aria-hidden="true"></canvas>
+    <canvas id="player" class="game-layer player-layer" aria-label="Jungle Dash game. Swipe or use arrow keys to avoid obstacles and collect coins."></canvas>
     <div class="vignette" aria-hidden="true"></div>
 
     <header class="hud" id="hud" hidden>
@@ -29,11 +31,11 @@
       <div class="title-card glass-card">
         <span class="tag"><span class="live-dot"></span> THE CANOPY TRAIL</span>
         <h2>Run wild.<br><span>Stay untamed.</span></h2>
-        <p>Dodge ancient ruins, leap jungle roots, and collect golden fruit along the trail.</p>
+        <p>Leap low blocks, climb ladder towers, and slide beneath raised jungle beams.</p>
         <div class="best-line"><span>BEST RUN</span><strong><span id="bestStart">0</span><small> m</small></strong></div>
         <button class="primary-button" id="playButton"><span class="play-glyph">▶</span> START RUN <span class="button-arrow">↗</span></button>
       </div>
-      <div class="controls-hint"><span>← →</span> CHANGE LANE <i>·</i> <span>↑</span> JUMP <i>·</i> <span>↓</span> SLIDE</div>
+      <div class="controls-hint"><span>← →</span> CHANGE LANE <i>·</i> <span>↑</span> JUMP / CLIMB <i>·</i> <span>↓</span> SLIDE</div>
       <div class="bottom-note">A LITTLE ADVENTURE GOES A LONG WAY</div>
     </section>
 
@@ -52,12 +54,12 @@
     <section class="screen modal-screen" id="settingsScreen" hidden aria-labelledby="settingsTitle">
       <div class="modal-card glass-card settings-card"><button class="close-button" id="closeSettings" aria-label="Back">←</button><p class="eyebrow">MAKE IT YOURS</p><h2 id="settingsTitle">Settings</h2>
         <label class="setting-row"><span><strong>Sound effects</strong><small>Game sounds and pickups</small></span><input type="checkbox" id="soundToggle" checked><span class="switch"></span></label>
-        <div class="setting-help"><strong>CONTROLS</strong><p>Swipe or use arrow keys. Jump over roots and slide under vines. Crates and carts need a lane change.</p></div>
+        <div class="setting-help"><strong>OBSTACLE GUIDE</strong><p>Jump over single-height blocks. Tap Up or swipe up at a ladder tower to climb it; tall towers without ladders will hit you. Slide under the raised beams, including the two-level beam.</p></div>
         <button class="primary-button" id="settingsDone">DONE</button>
       </div>
     </section>
 
-    <div class="touch-hint" id="touchHint" hidden>SWIPE TO MOVE <span>↑ JUMP</span> <span>↓ SLIDE</span></div>
+    <div class="touch-hint" id="touchHint" hidden>SWIPE TO MOVE <span>↑ JUMP / CLIMB</span> <span>↓ SLIDE</span></div>
   </main>
   <script type="module" src="src/game.js"></script>
 </body>

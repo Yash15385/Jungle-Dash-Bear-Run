@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="128" viewBox="0 0 640 128">
-  <title>Five-pose original friendly brown bear runner sprite sheet</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="896" height="128" viewBox="0 0 896 128">
+  <title>Seven-pose original friendly brown bear runner sprite sheet</title>
   <defs>
     <linearGradient id="fur" x2="0" y2="1"><stop stop-color="#a9553e"/><stop offset="1" stop-color="#773528"/></linearGradient>
     <linearGradient id="belly" x2="0" y2="1"><stop stop-color="#fff1b5"/><stop offset="1" stop-color="#e9c978"/></linearGradient>
@@ -18,6 +18,8 @@
     <g id="bear-body">
       <path d="M45 64Q64 57 83 64l6 30q-5 12-25 12T39 94Z" fill="url(#fur)" stroke="#4b2925" stroke-width="3"/>
       <ellipse cx="64" cy="84" rx="14" ry="19" fill="url(#belly)" stroke="#d2a45e" stroke-width="1.5"/>
+    </g>
+    <g id="bear-idle-limbs">
       <path d="M42 95q-3 12 2 17 6 5 16 0l1-11m12 0 1 11q10 5 16 0 5-5 2-17" fill="#773528" stroke="#4b2925" stroke-width="3" stroke-linejoin="round"/>
       <path d="M46 71q-10 3-13 15m48-15q10 3 13 15" fill="none" stroke="#4b2925" stroke-width="10" stroke-linecap="round"/>
       <path d="M34 86q-6 2-4 7 4 5 10 0m52-7q6 2 4 7-4 5-10 0" fill="#a9553e" stroke="#4b2925" stroke-width="2"/>
@@ -59,7 +61,23 @@
   </g>
   <!-- IDLE: centered relaxed bear -->
   <g transform="translate(512)">
-    <use href="#bear-shadow"/><use href="#bear-body"/><use href="#bear-head"/>
+    <use href="#bear-shadow"/><use href="#bear-idle-limbs"/><use href="#bear-body"/><use href="#bear-head"/>
     <path d="M52 104q12 5 24 0" fill="none" stroke="#d2a45e" stroke-width="2" opacity=".8"/>
+  </g>
+  <!-- RUN ALTERNATE: opposite leg and arm stride for a calm running cycle -->
+  <g transform="translate(640)">
+    <use href="#bear-shadow"/>
+    <path d="M48 99q-9 3-14 10 4 7 15 4l8-8m14-5q8 7 9 14-8 5-18-1l-4-9" fill="#773528" stroke="#4b2925" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M45 70q-10 4-13 14m55-14q12 4 15 14" fill="none" stroke="#4b2925" stroke-width="10" stroke-linecap="round"/>
+    <use href="#bear-body"/><use href="#bear-head"/>
+    <path d="M32 82l-4 5m61-5 4 5" stroke="#d77958" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <!-- CLIMB: paws reaching up and feet finding the next rung -->
+  <g transform="translate(768)">
+    <use href="#bear-shadow"/>
+    <path d="M48 98q-7 8-5 14 8 5 17-2l4-8m13-5q-2 8 5 13 8 0 11-8l-8-8" fill="#773528" stroke="#4b2925" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M45 70Q34 58 37 43m46 27Q95 58 92 43" fill="none" stroke="#4b2925" stroke-width="10" stroke-linecap="round"/>
+    <use href="#bear-body"/><use href="#bear-head"/>
+    <path d="M37 44l-1-8m56 8 1-8" stroke="#d77958" stroke-width="4" stroke-linecap="round"/>
   </g>
 </svg>

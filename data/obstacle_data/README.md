@@ -1,3 +1,3 @@
 # Obstacles
 
-Obstacle data uses a shared 1.8-unit lane width and forward-distance placement. The catalog includes jump, slide, dodge, and hazard examples. `patterns.js` samples readable patterns and keeps at least one lane actionable; always validate against the actual player speed and jump/slide timing in your game.
+Obstacle data uses forward-distance placement and describes three readable obstacle classes: single-story blocks that can be jumped, two-story towers with or without a climbable ladder, and raised single/double beams with a bottom opening that can be slid under. `patterns.js` samples readable patterns and keeps at least one lane actionable; ladder towers use the Up/Jump action when they are close in the current lane.

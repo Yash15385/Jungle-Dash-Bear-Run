@@ -4,7 +4,7 @@ A small, framework-free 2D player asset pack for a browser endless runner. It co
 
 ## Files
 
-- `player-sprites.svg` — five 128 × 128 original brown-bear poses in order: run, jump, slide, hit, idle. The rounded ears, brown fur, cream muzzle/belly, and friendly face follow the user's bear reference.
+- `player-sprites.svg` — seven 128 × 128 original brown-bear poses in order: run stride A, jump, slide, hit, idle, run stride B, and ladder climb. The rounded ears, brown fur, cream muzzle/belly, and friendly face follow the user's bear reference.
 - `player.css` — sprite animation and lane positioning styles.
 - `player.js` — keyboard and swipe controls, lane switching, jump/slide/hit state, and callbacks.
 - `collision.json` — recommended upright and slide collision boxes and lane settings.
