@@ -656,7 +656,8 @@ function act(direction) {
       checkCloseCall();
     }
   } else if (direction === 'jump') {
-    if (game.y <= game.groundY + 0.15 && game.slide <= 0) {
+    if (game.y <= game.groundY + 0.15) {
+      game.slide = 0; // Cancel active slide immediately upon jumping
       const isSuper = game.sneakers > 0;
       game.vy = isSuper ? 17.5 : 12.0;
       game.isJumping = true;
@@ -664,12 +665,10 @@ function act(direction) {
       spawnParticles(0, game.groundY + 0.1, 0, 0xffffff, 4, 1.5);
     }
   } else if (direction === 'slide') {
-    if (game.slide <= 0) {
-      game.slide = 0.75;
-      playSlideSound();
-      if (game.y > game.groundY) {
-        game.vy = -18.0;
-      }
+    game.slide = 0.75;
+    playSlideSound();
+    if (game.y > game.groundY) {
+      game.vy = -18.0;
     }
   }
 }
@@ -1394,35 +1393,110 @@ document.addEventListener('keydown', event => {
   }
 });
 
-// Touch and Swipe Controls + Double-Tap for Hoverboard
-let touchStart = null;
-let lastTouchTapTime = 0;
+// -------------------------------------------------------------
+// TOUCH & GESTURE CONTROLS (Mobile Swipe, Double-Tap, Desktop Drag)
+// -------------------------------------------------------------
+let activePointer = null;
+let lastTapTime = 0;
+let lastTapPos = { x: 0, y: 0 };
+const SWIPE_THRESHOLD = 20;
 
-canvas3d.addEventListener('pointerdown', event => {
+function handlePointerDown(event) {
   if (game.state !== 'playing') return;
-  touchStart = { x: event.clientX, y: event.clientY };
 
-  const now = performance.now();
-  if (now - lastTouchTapTime < 320) {
-    activateHoverboard();
+  // Let buttons, inputs, and interactive UI handle their own clicks
+  if (
+    event.target &&
+    event.target.closest &&
+    event.target.closest('button, input, select, textarea, .icon-button, [role="button"]')
+  ) {
+    return;
   }
-  lastTouchTapTime = now;
-});
 
-canvas3d.addEventListener('pointerup', event => {
-  if (!touchStart || game.state !== 'playing') return;
-  const dx = event.clientX - touchStart.x;
-  const dy = event.clientY - touchStart.y;
-  touchStart = null;
+  activePointer = {
+    id: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    swiped: false,
+    startTime: performance.now(),
+  };
 
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-  if (Math.abs(dx) > Math.abs(dy)) {
-    act(dx < 0 ? 'left' : 'right');
-  } else {
-    act(dy < 0 ? 'jump' : 'slide');
+  try {
+    shell.setPointerCapture(event.pointerId);
+  } catch (_) {}
+}
+
+function handlePointerMove(event) {
+  if (!activePointer || game.state !== 'playing') return;
+  if (event.pointerId !== activePointer.id) return;
+
+  const dx = event.clientX - activePointer.startX;
+  const dy = event.clientY - activePointer.startY;
+  const absX = Math.abs(dx);
+  const absY = Math.abs(dy);
+
+  if (Math.max(absX, absY) >= SWIPE_THRESHOLD) {
+    if (absX > absY) {
+      act(dx > 0 ? 'right' : 'left');
+    } else {
+      act(dy > 0 ? 'slide' : 'jump');
+    }
+    activePointer.swiped = true;
+    // Reset anchor point to current position to enable continuous chained swipes without lifting finger
+    activePointer.startX = event.clientX;
+    activePointer.startY = event.clientY;
   }
-});
+}
 
-canvas3d.addEventListener('pointercancel', () => (touchStart = null));
+function handlePointerUp(event) {
+  if (!activePointer || event.pointerId !== activePointer.id) return;
+
+  try {
+    shell.releasePointerCapture(event.pointerId);
+  } catch (_) {}
+
+  const wasSwiped = activePointer.swiped;
+  activePointer = null;
+
+  if (game.state !== 'playing') return;
+
+  // Double tap detection for hoverboard if user tapped without swiping
+  if (!wasSwiped) {
+    const now = performance.now();
+    const dist = Math.hypot(event.clientX - lastTapPos.x, event.clientY - lastTapPos.y);
+    if (now - lastTapTime < 320 && dist < 60) {
+      activateHoverboard();
+      lastTapTime = 0;
+    } else {
+      lastTapTime = now;
+      lastTapPos = { x: event.clientX, y: event.clientY };
+    }
+  }
+}
+
+function handlePointerCancel(event) {
+  if (activePointer && event.pointerId === activePointer.id) {
+    try {
+      shell.releasePointerCapture(event.pointerId);
+    } catch (_) {}
+    activePointer = null;
+  }
+}
+
+shell.addEventListener('pointerdown', handlePointerDown, { passive: true });
+window.addEventListener('pointermove', handlePointerMove, { passive: true });
+window.addEventListener('pointerup', handlePointerUp, { passive: true });
+window.addEventListener('pointercancel', handlePointerCancel, { passive: true });
+
+// Prevent mobile browser page bounce, pull-to-refresh, or gesture navigation during active play
+window.addEventListener(
+  'touchmove',
+  event => {
+    if (game.state === 'playing') {
+      if (event.cancelable) event.preventDefault();
+    }
+  },
+  { passive: false }
+);
 
 showScreen('start');
