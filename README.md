@@ -10,7 +10,7 @@ A fast, responsive 3D endless runner built with **Three.js** and vanilla JavaScr
 
 ---
 
-## 🚀 Getting Started (How to Use After Forking)
+## 🚀 Getting Started
 
 Follow these steps to run and customize your own copy of the game:
 
@@ -56,13 +56,6 @@ This creates an optimized, production-ready build in the `dist/` directory. You 
 npm run preview
 ```
 
-### 6. Deploying to Vercel (Optional)
-If you'd like to deploy your own live version on Vercel:
-1. Go to [Vercel](https://vercel.com/) and sign in with your GitHub account.
-2. Click **Add New Project** and select your forked repository.
-3. Keep the default build settings (`Framework Preset: Vite`, `Build Command: npm run build`, `Output Directory: dist`).
-4. Click **Deploy** — your live game will be published in seconds!
-
 ---
 
 ## 🕹️ Controls
@@ -85,6 +78,11 @@ The game features zero-latency input for both desktop keyboards and mobile touch
 
 ## ✨ Game Features
 
+- **🦝 Thief Chase**:
+  - **The Jungle Bandit (Roy)**: A sneaky 3D raccoon bandit runs ahead of you on the tracks carrying a bulging loot sack and the stolen **Sacred Jungle Precision Stone**!
+  - **Dynamic Pursuit & Parkour**: The thief dodges oncoming trains, leaps over hurdles, and glances back nervously over his shoulder as you gain on him.
+  - **Proximity Radar HUD & Loot Drops**: Close in within 16 meters to trigger thief panic! He flails his arms, drops bundles of gleaming **Gold Bars** and rare **Sacred Precision Gems**, and scrambles forward with an alert squeak.
+  - **Recover the Sacred Gem**: Snatch the dropped Precision Stones for massive score bonuses (+250) and bank coin riches!
 - **Subway Tracks & Obstacles**: Run on a 3D perspective track with oncoming subway trains, rooftop running ramps, low slide barriers, and jumpable hurdles with arc coins.
 - **Power-Ups & Gadgets**:
   - 🚀 **Jetpack**: Rocket high into the sky with procedural cone thruster flames and collect rows of sky coins.
@@ -92,11 +90,10 @@ The game features zero-latency input for both desktop keyboards and mobile touch
   - 🧲 **Coin Magnet**: Pulls all nearby coins into your wallet automatically.
   - 👟 **Super Sneakers**: High-altitude super jumps.
   - ⚡ **2x Multiplier**: Doubles your run score in real time.
-- **Word Hunt ("DASH")**: Collect glowing letters scattered on the tracks to complete the daily word hunt and earn bonus coins.
 - **Shop & Customization**: Purchase and equip runner characters, unique hoverboards, and power-up duration upgrades with in-game bank coins.
 - **Missions & Rank**: Complete challenges (collect coins, jump hurdles, use hoverboards) to increase your permanent score multiplier.
 - **Revive System ("Save Me!")**: Use keys or banked coins to revive and keep your record streak alive.
-- **Audio & Sound Synthesizer**: Built-in procedural Web Audio sound effects for jumps, coin chimes, jetpacks, train horns, close calls, and background beats.
+- **Audio & Sound Synthesizer**: Built-in procedural Web Audio sound effects for jumps, coin chimes, jetpacks, train horns, close calls, thief panic squeaks, gem chimes, and background beats.
 
 ---
 

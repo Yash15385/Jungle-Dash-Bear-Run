@@ -114,6 +114,24 @@ const woodLightMat = mat(0xa87542, 0.85);
 
 const coinMat = mat(0xffc107, 0.25, 0.85, { emissive: 0x6e4300, emissiveIntensity: 0.35 });
 const coinRingMat = mat(0xffe082, 0.2, 0.7);
+const goldBarMat = mat(0xffd54f, 0.2, 0.9, { emissive: 0xff8f00, emissiveIntensity: 0.28 });
+const goldBarHighlightMat = mat(0xfff9c4, 0.15, 0.95);
+
+// Sacred Jungle Precision Stone Materials
+const gemMat = mat(0x00e676, 0.1, 0.95, { emissive: 0x00e676, emissiveIntensity: 0.85 });
+const gemHaloMat = new THREE.MeshBasicMaterial({ color: 0x69f0ae, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
+
+// Talking Tom Gold Run - Thief Materials
+const thiefFurMat = mat(0x37474f, 0.8);
+const thiefSnoutMat = mat(0xf5f5f5, 0.85);
+const thiefNoseMat = mat(0x111111, 0.9);
+const thiefStripeDark = mat(0x1b1b1b, 0.85);
+const thiefStripeLight = mat(0xeeeeee, 0.85);
+const thiefMaskMat = mat(0x0a0a0a, 0.95);
+const thiefEyeMat = new THREE.MeshBasicMaterial({ color: 0xffeb3b });
+const thiefSackMat = mat(0x8d6e63, 0.9);
+const thiefRopeMat = mat(0xd7ccc8, 0.9);
+const thiefBeanieMat = mat(0x263238, 0.85);
 
 const magnetMat = mat(0xdd2c00, 0.3, 0.4);
 const magnetTipMat = mat(0xcccccc, 0.2, 0.8);
@@ -502,6 +520,182 @@ bodyGroup.add(headstartMesh);
 scene.add(playerMesh);
 
 // -------------------------------------------------------------
+// 3D THIEF CHARACTER - TALKING TOM GOLD RUN (Roy the Jungle Bandit)
+// -------------------------------------------------------------
+export const thiefMesh = new THREE.Group();
+const thiefTilt = new THREE.Group();
+thiefMesh.add(thiefTilt);
+
+const thiefShadow = new THREE.Mesh(new THREE.CircleGeometry(0.65, 18), shadowMat);
+thiefShadow.rotation.x = -Math.PI / 2;
+thiefShadow.position.y = 0.02;
+thiefMesh.add(thiefShadow);
+
+const thiefBodyGroup = new THREE.Group();
+thiefTilt.add(thiefBodyGroup);
+
+// Torso: Black & white striped bandit jumper
+const thiefTorso = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.76, 0.38), thiefStripeDark);
+thiefTorso.position.y = 1.05;
+thiefTorso.castShadow = true;
+thiefBodyGroup.add(thiefTorso);
+
+// White stripes on sweater
+for (const sy of [0.88, 1.05, 1.22]) {
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.07, 0.39), thiefStripeLight);
+  stripe.position.set(0, sy, 0);
+  thiefBodyGroup.add(stripe);
+}
+
+// Belt & gold buckle
+const thiefBelt = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.08, 0.39), mat(0x111111, 0.9));
+thiefBelt.position.set(0, 0.74, 0);
+thiefBodyGroup.add(thiefBelt);
+const thiefBuckle = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.1, 0.40), coinMat);
+thiefBuckle.position.set(0, 0.74, 0);
+thiefBodyGroup.add(thiefBuckle);
+
+// Head & Bandit Mask
+const thiefHeadGroup = new THREE.Group();
+thiefHeadGroup.position.set(0, 1.62, 0);
+thiefBodyGroup.add(thiefHeadGroup);
+
+// Bandit head base (raccoon grey fur)
+const thiefHead = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.48, 0.46), thiefFurMat);
+thiefHead.castShadow = true;
+thiefHeadGroup.add(thiefHead);
+
+// Beanie cap
+const thiefBeanie = new THREE.Mesh(new THREE.BoxGeometry(0.53, 0.22, 0.49), thiefBeanieMat);
+thiefBeanie.position.set(0, 0.18, 0);
+thiefHeadGroup.add(thiefBeanie);
+
+// Bandit ears (pointy raccoon ears)
+for (const side of [-1, 1]) {
+  const ear = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.22, 4), thiefFurMat);
+  ear.position.set(side * 0.20, 0.30, 0);
+  ear.rotation.z = side * -0.3;
+  thiefHeadGroup.add(ear);
+
+  const innerEar = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.15, 4), mat(0xffccbc, 0.8));
+  innerEar.position.set(side * 0.20, 0.30, -0.02);
+  innerEar.rotation.z = side * -0.3;
+  thiefHeadGroup.add(innerEar);
+}
+
+// Snout (white)
+const thiefSnout = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.16, 0.18), thiefSnoutMat);
+thiefSnout.position.set(0, -0.09, -0.27);
+thiefHeadGroup.add(thiefSnout);
+
+// Black nose
+const thiefNose = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.08), thiefNoseMat);
+thiefNose.position.set(0, -0.06, -0.36);
+thiefHeadGroup.add(thiefNose);
+
+// Black bandit domino mask around eyes
+const thiefMask = new THREE.Mesh(new THREE.BoxGeometry(0.51, 0.14, 0.12), thiefMaskMat);
+thiefMask.position.set(0, 0.03, -0.23);
+thiefHeadGroup.add(thiefMask);
+
+// Sly yellow eyes on the mask
+for (const side of [-1, 1]) {
+  const eye = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.02), thiefEyeMat);
+  eye.position.set(side * 0.13, 0.03, -0.29);
+  thiefHeadGroup.add(eye);
+}
+
+// Bulging Loot Sack on his back!
+const thiefLootSack = new THREE.Group();
+thiefLootSack.position.set(0.14, 1.05, 0.32);
+const sackBody = new THREE.Mesh(new THREE.DodecahedronGeometry(0.36, 1), thiefSackMat);
+sackBody.scale.set(1.0, 1.25, 0.95);
+sackBody.castShadow = true;
+thiefLootSack.add(sackBody);
+
+// Tied rope neck
+const sackRope = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, 6, 12), thiefRopeMat);
+sackRope.rotation.x = Math.PI / 2;
+sackRope.position.y = 0.40;
+thiefLootSack.add(sackRope);
+
+// Spilling gold bars poking out top of sack
+const sackGold1 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.1, 0.3), goldBarMat);
+sackGold1.position.set(-0.05, 0.46, -0.04);
+sackGold1.rotation.set(0.3, 0.4, 0.2);
+thiefLootSack.add(sackGold1);
+
+const sackGold2 = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.08, 0.24), coinMat);
+sackGold2.position.set(0.07, 0.48, 0.04);
+sackGold2.rotation.set(-0.2, -0.3, -0.2);
+thiefLootSack.add(sackGold2);
+
+// THE SACRED JUNGLE PRECISION STONE mounted atop the loot sack!
+const thiefPrecisionGem = new THREE.Group();
+thiefPrecisionGem.position.set(0, 0.65, 0);
+
+const gemDiamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.24, 0), gemMat);
+gemDiamond.castShadow = true;
+thiefPrecisionGem.add(gemDiamond);
+
+const gemRingMesh = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.025, 6, 16), gemHaloMat);
+gemRingMesh.rotation.x = Math.PI / 3;
+thiefPrecisionGem.add(gemRingMesh);
+
+thiefLootSack.add(thiefPrecisionGem);
+thiefBodyGroup.add(thiefLootSack);
+
+// Striped Raccoon Tail!
+const thiefTail = new THREE.Group();
+thiefTail.position.set(0, 0.70, 0.20);
+for (let i = 0; i < 4; i++) {
+  const tailSeg = new THREE.Mesh(
+    new THREE.BoxGeometry(0.13, 0.13, 0.18),
+    i % 2 === 0 ? thiefStripeDark : thiefStripeLight
+  );
+  tailSeg.position.set(0, -i * 0.07, i * 0.15);
+  tailSeg.rotation.x = 0.42;
+  thiefTail.add(tailSeg);
+}
+thiefBodyGroup.add(thiefTail);
+
+// Thief Arms
+function makeThiefArm(side) {
+  const arm = new THREE.Group();
+  arm.position.set(side * 0.42, 1.35, 0);
+  const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.35, 0.2), thiefStripeDark);
+  sleeve.position.y = -0.17;
+  arm.add(sleeve);
+  const glove = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.22, 0.18), mat(0x111111, 0.9));
+  glove.position.y = -0.40;
+  arm.add(glove);
+  return arm;
+}
+const thiefLeftArm = makeThiefArm(-1);
+const thiefRightArm = makeThiefArm(1);
+thiefBodyGroup.add(thiefLeftArm);
+thiefBodyGroup.add(thiefRightArm);
+
+// Thief Legs
+function makeThiefLeg(side) {
+  const leg = new THREE.Group();
+  leg.position.set(side * 0.18, 0.68, 0);
+  const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.44, 0.24), mat(0x212121, 0.7));
+  thigh.position.y = -0.22;
+  leg.add(thigh);
+  const boot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.36), mat(0x111111, 0.8));
+  boot.position.set(0, -0.50, -0.04);
+  leg.add(boot);
+  return leg;
+}
+const thiefLeftLeg = makeThiefLeg(-1);
+const thiefRightLeg = makeThiefLeg(1);
+thiefBodyGroup.add(thiefLeftLeg);
+thiefBodyGroup.add(thiefRightLeg);
+
+scene.add(thiefMesh);
+
+// -------------------------------------------------------------
 // 3D HIGH-PERFORMANCE ZERO-ALLOCATION PARTICLE POOL
 // -------------------------------------------------------------
 const MAX_PARTICLES = 64;
@@ -736,16 +930,31 @@ function makeRoadblock() {
   return group;
 }
 
-// GOLD COIN (Shared Geometry Pool)
-const coinCylinderGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.08, 14);
-const coinRingGeo = new THREE.TorusGeometry(0.18, 0.025, 6, 14);
-const coinCenterGeo = new THREE.SphereGeometry(0.06, 6, 5);
+// TALKING TOM GOLD RUN - GOLD BAR BULLION INGOT
+const goldBarGeo = new THREE.BoxGeometry(0.48, 0.16, 0.26);
+const goldTopGeo = new THREE.BoxGeometry(0.40, 0.04, 0.20);
+const goldStampGeo = new THREE.BoxGeometry(0.22, 0.02, 0.10);
 
 function makeCoin() {
   const group = new THREE.Group();
-  addMesh(group, coinCylinderGeo, coinMat, [0, 0.85, 0], [Math.PI / 2, 0, 0]);
-  addMesh(group, coinRingGeo, coinRingMat, [0, 0.85, 0.045]);
-  addMesh(group, coinCenterGeo, coinRingMat, [0, 0.85, 0.05]);
+  addMesh(group, goldBarGeo, goldBarMat, [0, 0.85, 0]);
+  addMesh(group, goldTopGeo, goldBarHighlightMat, [0, 0.94, 0]);
+  addMesh(group, goldStampGeo, coinRingMat, [0, 0.965, 0]);
+  return group;
+}
+
+// THE SACRED JUNGLE PRECISION STONE COLLECTIBLE
+const gemOctaGeo = new THREE.OctahedronGeometry(0.36, 0);
+const gemTorusGeo = new THREE.TorusGeometry(0.5, 0.025, 6, 18);
+const gemSparkleGeo = new THREE.OctahedronGeometry(0.14, 0);
+
+function makeSacredGem() {
+  const group = new THREE.Group();
+  addMesh(group, gemOctaGeo, gemMat, [0, 1.0, 0]);
+  const ring = addMesh(group, gemTorusGeo, gemHaloMat, [0, 1.0, 0], [Math.PI / 4, 0, 0]);
+  ring.userData.isGemRing = true;
+  addMesh(group, gemSparkleGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }), [0, 1.0, 0]);
+  group.userData.isSacredGem = true;
   return group;
 }
 
@@ -886,6 +1095,8 @@ function makeMysteryBox() {
 // Constructors dictionary
 const constructors = {
   coin: makeCoin,
+  goldBar: makeCoin,
+  sacredGem: makeSacredGem,
   train: () => makeTrain(false, false),
   trainRamp: () => makeTrain(true, false),
   trainMoving: () => makeTrain(false, true),
@@ -934,7 +1145,7 @@ export function resizeScene(width, height) {
 // -------------------------------------------------------------
 // MAIN 3D RENDER LOOP HOOK
 // -------------------------------------------------------------
-export function update3DScene(playerState, objects, distance, timeSeconds, dt) {
+export function update3DScene(playerState, objects, distance, timeSeconds, dt, thiefState) {
   // 1. UPDATE SLEEPERS & SCENERY SCROLL
   for (const tie of trackTies) {
     let z = roadStartZ - ((tie.userData.initialZ - distance) % roadLength);
@@ -1004,6 +1215,19 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt) {
         group.position.y = THREE.MathUtils.lerp(group.position.y, playerMesh.position.y + 0.9, dt * 10);
         group.position.z = THREE.MathUtils.lerp(group.position.z, playerMesh.position.z, dt * 10);
       }
+    } else if (object.kind === 'sacredGem') {
+      group.rotation.y = timeSeconds * 3.6 + object.distance;
+      const baseY = object.roof ? TRAIN_HEIGHT : 0;
+      group.position.y = baseY + 0.15 + Math.sin(timeSeconds * 5 + object.distance) * 0.16;
+      const ring = group.children.find(c => c.userData && c.userData.isGemRing);
+      if (ring) ring.rotation.z = timeSeconds * 4;
+
+      const isMagnetic = playerState.magnetActive || playerState.jetpackActive || playerState.headstartActive;
+      if (isMagnetic && Math.abs(relZ) < 14 && relZ < 2.5) {
+        group.position.x = THREE.MathUtils.lerp(group.position.x, playerMesh.position.x, dt * 10);
+        group.position.y = THREE.MathUtils.lerp(group.position.y, playerMesh.position.y + 0.9, dt * 10);
+        group.position.z = THREE.MathUtils.lerp(group.position.z, playerMesh.position.z, dt * 10);
+      }
     } else if (object.kind === 'letter') {
       group.rotation.y = timeSeconds * 2.8 + object.distance;
       const baseY = object.roof ? TRAIN_HEIGHT : (object.elevated ? 1.2 : 0.35);
@@ -1042,6 +1266,11 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt) {
   hoverboardMesh.visible = Boolean(playerState.hoverboardActive);
   jetpackMesh.visible = Boolean(playerState.jetpackActive);
   wingsMesh.visible = Boolean(playerState.sneakersActive);
+  if (playerState.sneakersActive && wingsMesh.children.length >= 2) {
+    const flap = Math.sin(timeSeconds * 22) * 0.3;
+    wingsMesh.children[0].rotation.z = -0.7 - flap;
+    wingsMesh.children[1].rotation.z = 0.7 + flap;
+  }
   magnetAura.visible = Boolean(playerState.magnetActive);
   headstartMesh.visible = Boolean(playerState.headstartActive);
 
@@ -1071,6 +1300,7 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt) {
     // Flying rocket pose: arms back, legs trailing
     bodyGroup.rotation.y = 0;
     bodyGroup.rotation.x = 0.3;
+    bodyGroup.position.y = 0;
     leftLeg.rotation.x = 0.4;
     rightLeg.rotation.x = 0.4;
     leftArm.rotation.x = 0.8;
@@ -1158,6 +1388,61 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt) {
   shadowDisc.material.opacity = Math.max(0.1, 0.42 - heightAboveGround * 0.1);
   shadowDisc.rotation.x = -Math.PI / 2 + (playerState.onRamp ? rampAngle : 0);
 
+  // 4B. ANIMATE 3D THIEF (Talking Tom Gold Run - Roy the Jungle Bandit)
+  if (thiefState && thiefMesh) {
+    const relZ = -(thiefState.distance - distance);
+    const inRange = relZ > farZ - 10 && relZ < roadStartZ + 15;
+    thiefMesh.visible = inRange;
+
+    if (inRange) {
+      const targetX = LANE_X[thiefState.lane] || 0;
+      thiefMesh.position.x = THREE.MathUtils.lerp(thiefMesh.position.x, targetX, Math.min(1, dt * 10));
+      thiefMesh.position.y = thiefState.y || 0;
+      thiefMesh.position.z = relZ;
+
+      // Running stride
+      const thiefStride = timeSeconds * 20;
+      thiefLeftLeg.rotation.x = Math.sin(thiefStride) * 0.85;
+      thiefRightLeg.rotation.x = -Math.sin(thiefStride) * 0.85;
+
+      // Body bounce & forward sprint lean
+      thiefBodyGroup.position.y = Math.abs(Math.sin(thiefStride)) * 0.12;
+      thiefBodyGroup.rotation.x = 0.24;
+
+      // Loot sack bounce
+      thiefLootSack.position.y = 1.05 + Math.sin(thiefStride * 2) * 0.05;
+
+      // Sacred Precision Stone magical pulse and spin
+      thiefPrecisionGem.rotation.y = timeSeconds * 3.4;
+      const gemPulse = 1.0 + Math.sin(timeSeconds * 8) * 0.16;
+      thiefPrecisionGem.scale.set(gemPulse, gemPulse, gemPulse);
+
+      // Tail swish
+      thiefTail.rotation.y = Math.sin(thiefStride) * 0.35;
+
+      // Reactions: Panic flail or looking back over shoulder
+      if (thiefState.panic > 0) {
+        thiefLeftArm.rotation.x = -1.2 + Math.sin(timeSeconds * 32) * 0.6;
+        thiefRightArm.rotation.x = -1.2 - Math.sin(timeSeconds * 32) * 0.6;
+        thiefHeadGroup.rotation.y = THREE.MathUtils.lerp(thiefHeadGroup.rotation.y, 2.7, Math.min(1, dt * 14));
+        thiefTilt.rotation.z = Math.sin(timeSeconds * 24) * 0.16;
+      } else if (thiefState.lookBackTimer > 0) {
+        thiefHeadGroup.rotation.y = THREE.MathUtils.lerp(thiefHeadGroup.rotation.y, 2.6, Math.min(1, dt * 8));
+        thiefLeftArm.rotation.x = -Math.sin(thiefStride) * 0.75;
+        thiefRightArm.rotation.x = Math.sin(thiefStride) * 0.75;
+        thiefTilt.rotation.z = 0;
+      } else {
+        thiefHeadGroup.rotation.y = THREE.MathUtils.lerp(thiefHeadGroup.rotation.y, 0, Math.min(1, dt * 6));
+        thiefLeftArm.rotation.x = -Math.sin(thiefStride) * 0.75;
+        thiefRightArm.rotation.x = Math.sin(thiefStride) * 0.75;
+        thiefTilt.rotation.z = 0;
+      }
+
+      // Shadow disc tracking
+      thiefShadow.position.y = -thiefMesh.position.y + 0.02;
+    }
+  }
+
   // 5. DYNAMIC SUBWAY TUNNEL BIOME TRANSITION
   const cycleDist = distance % 600;
   const inTunnel = cycleDist > 240 && cycleDist < 460;
@@ -1167,13 +1452,47 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt) {
   sun.intensity = THREE.MathUtils.lerp(sun.intensity, inTunnel ? 1.0 : 2.6, dt * 2.5);
   ambientFill.intensity = THREE.MathUtils.lerp(ambientFill.intensity, inTunnel ? 1.6 : 0.9, dt * 2.5);
 
-  // 6. DYNAMIC 3D CAMERA (Lag, Tilt, Shake & Speed FOV)
-  const targetCamX = playerMesh.position.x * 0.42;
-  const targetCamY = 3.2 + playerMesh.position.y * 0.45;
+  // 6. DYNAMIC 3D CAMERA (Vantage, Altitude POV, Tilt, Shake & Speed FOV)
+  const isFlying = Boolean(playerState.jetpackActive || playerState.headstartActive);
+  const isOnTrain = !isFlying && Boolean(playerState.onRamp || (playerState.groundY && playerState.groundY >= 1.8));
+
+  let targetCamY = 3.4;
+  let targetCamZ = 7.4;
+  let targetLookAtY = 1.45;
+  let lookAtZ = -18;
+
+  if (isFlying) {
+    // Jetpack Sky Flight: High-altitude cinematic aerial POV
+    // Camera ascends and pulls back so runner is in lower-third, leaving clear view of upcoming sky coins & tracks ahead
+    targetCamY = playerMesh.position.y + 4.1;
+    targetCamZ = 9.8;
+    targetLookAtY = playerMesh.position.y + 1.1;
+    lookAtZ = -28;
+  } else if (isOnTrain) {
+    // Train / Bus Roof: Elevated panoramic POV over train roofs
+    // High clearance over player's cap, pulled back slightly to clearly see roof hurdles, train ends & ramps
+    const baseTrainY = playerState.groundY || TRAIN_HEIGHT;
+    targetCamY = baseTrainY + 3.65;
+    targetCamZ = 8.2;
+    targetLookAtY = baseTrainY + 1.55;
+    lookAtZ = -22;
+  } else {
+    // Normal Ground Running & Jumping: Camera remains rock-steady at ground level!
+    // Jumping on the road will NOT shift the camera POV or cause vertical bobbing.
+    targetCamY = 3.4;
+    targetCamZ = 7.4;
+    targetLookAtY = 1.45;
+    lookAtZ = -18;
+  }
+
+  const targetCamX = playerMesh.position.x * 0.38;
 
   camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetCamX, Math.min(1, dt * 10));
-  camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetCamY, Math.min(1, dt * 8));
-  camera.position.z = 7.6;
+  camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetCamY, Math.min(1, dt * 7));
+  camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetCamZ, Math.min(1, dt * 6));
+
+  // Dynamic LookAt Point
+  const targetLookAtX = playerMesh.position.x * 0.22;
 
   // Camera Shake
   if (cameraShake > 0) {
@@ -1182,16 +1501,17 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt) {
     cameraShake = Math.max(0, cameraShake - dt * 1.5);
   }
 
-  // Speed FOV expansion (speed sensation)
-  const targetFov = 50 + (playerState.speed - 13) * 0.8;
-  camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, dt * 2);
+  // Speed FOV expansion (speed sensation, wider during jetpack)
+  const baseFov = isFlying ? 58 : 50;
+  const targetFov = baseFov + (playerState.speed - 13) * 0.7;
+  camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, dt * 3);
   camera.updateProjectionMatrix();
 
-  camera.lookAt(playerMesh.position.x * 0.25, 1.35 + playerMesh.position.y * 0.35, -16);
+  camera.lookAt(targetLookAtX, targetLookAtY, lookAtZ);
 
   // Sun shadow camera tracks with player position
   sun.position.x = playerMesh.position.x - 6;
-  sun.target.position.set(playerMesh.position.x, 0, -10);
+  sun.target.position.set(playerMesh.position.x, playerMesh.position.y * 0.4, -10);
   sun.target.updateMatrixWorld();
 
   renderer.render(scene, camera);

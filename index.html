@@ -19,20 +19,14 @@
       <div class="hud-pill score-pill"><span class="hud-label">SCORE</span><strong id="score">0</strong><span class="hud-divider"></span><span class="hud-label">DIST</span><strong><span id="distance">0</span><small>m</small></strong></div>
       <div class="hud-center" id="hudPowerups"></div>
       <div class="hud-right">
+        <div class="hud-pill gem-pill" id="gemPill" title="Sacred Precision Gems Recovered">
+          <span class="gem-icon">💎</span>
+          <strong id="gems">0</strong>
+        </div>
         <div class="hud-pill coin-pill"><span class="coin-icon">✦</span><strong id="coins">0</strong></div>
         <button class="icon-button" id="pauseButton" aria-label="Pause game" title="Pause">Ⅱ</button>
       </div>
     </header>
-
-    <div class="word-hunt-bar" id="wordHuntBar" hidden>
-      <span class="hunt-tag">WORD HUNT</span>
-      <div class="hunt-letters">
-        <span class="hunt-letter" id="huntLetter_D">D</span>
-        <span class="hunt-letter" id="huntLetter_A">A</span>
-        <span class="hunt-letter" id="huntLetter_S">S</span>
-        <span class="hunt-letter" id="huntLetter_H">H</span>
-      </div>
-    </div>
 
     <button class="hoverboard-btn" id="hoverboardBtn" hidden><span class="board-icon">🛹</span> HOVERBOARD <small id="hoverboardCount">×3</small></button>
     <button class="headstart-btn" id="headstartBtn" hidden><span class="rocket-icon">🚀</span> HEADSTART <small>+450m</small></button>
@@ -43,20 +37,20 @@
     <section class="screen start-screen" id="startScreen" aria-labelledby="gameTitle">
       <div class="brand-row">
         <span class="brand-mark">JD</span>
-        <div><p class="eyebrow">SUBWAY 3D RUNNER</p><h1 id="gameTitle">Jungle <em>Dash</em></h1></div>
+        <div><p class="eyebrow">TALKING TOM STYLE · GOLD RUN</p><h1 id="gameTitle">Jungle <em>Dash</em></h1></div>
         <div class="hud-pill coin-pill start-coins" title="Total Bank Coins"><span class="coin-icon">✦</span><strong id="bankCoins">0</strong></div>
         <button class="icon-button settings-top" data-open-settings aria-label="Settings" title="Settings">⚙</button>
       </div>
       <div class="start-spacer"></div>
       <div class="title-card glass-card">
         <div class="title-meta-row">
-          <span class="tag"><span class="live-dot"></span> THE SUBWAY TRAIL</span>
+          <span class="tag"><span class="live-dot"></span> CHASE THE THIEF</span>
           <span class="tag mult-tag">MULTIPLIER <b id="startMultiplier">x1</b></span>
         </div>
-        <h2>Run wild.<br><span>Stay untamed.</span></h2>
-        <p>Leap hurdles, run across train roofs, slide under barriers, and surf on hoverboards!</p>
+        <h2>Stop the Bandit.<br><span>Reclaim the Sacred Stone.</span></h2>
+        <p>A sneaky raccoon thief stole the ancient Jungle Precision Stone! Chase him down the subway tracks, collect his dropped gold bars, and recover the lost gems!</p>
         <div class="best-line"><span>BEST RUN</span><strong><span id="bestStart">0</span><small> m</small></strong></div>
-        <button class="primary-button" id="playButton"><span class="play-glyph">▶</span> START RUN <span class="button-arrow">↗</span></button>
+        <button class="primary-button" id="playButton"><span class="play-glyph">▶</span> CHASE THE THIEF <span class="button-arrow">↗</span></button>
         <div class="start-action-row">
           <button class="action-btn" id="openShopBtn">🛍️ &nbsp; SHOP</button>
           <button class="action-btn" id="openMissionsBtn">🎯 &nbsp; MISSIONS</button>
@@ -88,9 +82,13 @@
     </section>
 
     <section class="screen modal-screen" id="gameOverScreen" hidden aria-labelledby="overTitle">
-      <div class="modal-card result-card glass-card"><div class="result-medal">✦</div><p class="eyebrow">TRAIL COMPLETE</p><h2 id="overTitle">Nice run!</h2><p class="modal-copy" id="resultMessage">The subway is calling you back.</p>
+      <div class="modal-card result-card glass-card"><div class="result-medal">💎</div><p class="eyebrow">CHASE COMPLETE</p><h2 id="overTitle">Bandit Escaped!</h2><p class="modal-copy" id="resultMessage">The thief vanished into the jungle ruins. Run again to catch him!</p>
         <div class="result-score"><span>YOUR SCORE</span><strong id="finalScore">0</strong></div>
-        <div class="result-stats"><div><span>DISTANCE</span><strong><b id="finalDistance">0</b> m</strong></div><div><span>COINS</span><strong><b id="finalCoins">0</b> ✦</strong></div></div>
+        <div class="result-stats" style="grid-template-columns:1fr 1fr 1fr;">
+          <div><span>DISTANCE</span><strong><b id="finalDistance">0</b> m</strong></div>
+          <div><span>GOLD BARS</span><strong><b id="finalCoins">0</b> ✦</strong></div>
+          <div><span>PRECISION GEMS</span><strong><b id="finalGems">0</b> 💎</strong></div>
+        </div>
         
         <div class="mystery-box-card" id="mysteryRewardCard" hidden>
           <div class="mystery-icon">🎁</div>

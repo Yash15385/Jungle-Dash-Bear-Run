@@ -652,3 +652,67 @@ export function playLetterCollectSound(letterIndex = 0) {
   osc2.stop(audio.currentTime + 0.32);
 }
 
+// -------------------------------------------------------------
+// TALKING TOM GOLD RUN - THIEF CHASE AUDIO
+// -------------------------------------------------------------
+export function playThiefPanicSound() {
+  if (isMuted) return;
+  const audio = getContext();
+  if (!audio) return;
+
+  // Comedic surprised burglar squeak: rapid rising pitch, then flustered wobble
+  const t = audio.currentTime;
+  const osc = audio.createOscillator();
+  const osc2 = audio.createOscillator();
+  const gain = audio.createGain();
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(320, t);
+  osc.frequency.exponentialRampToValueAtTime(780, t + 0.12);
+  osc.frequency.linearRampToValueAtTime(620, t + 0.22);
+  osc.frequency.exponentialRampToValueAtTime(920, t + 0.35);
+
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(640, t);
+  osc2.frequency.exponentialRampToValueAtTime(1560, t + 0.12);
+  osc2.frequency.linearRampToValueAtTime(1240, t + 0.22);
+
+  gain.gain.setValueAtTime(0.12 * sfxVolume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+
+  osc.connect(gain);
+  osc2.connect(gain);
+  gain.connect(audio.destination);
+
+  osc.start(t);
+  osc2.start(t);
+  osc.stop(t + 0.38);
+  osc2.stop(t + 0.38);
+}
+
+export function playGemCollectSound() {
+  if (isMuted) return;
+  const audio = getContext();
+  if (!audio) return;
+
+  // Radiant crystalline arpeggio chime: E5, G#5, B5, E6
+  const t = audio.currentTime;
+  const notes = [659.25, 830.61, 987.77, 1318.51];
+  notes.forEach((freq, idx) => {
+    const noteStart = t + idx * 0.05;
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, noteStart);
+
+    gain.gain.setValueAtTime(0.16 * sfxVolume, noteStart);
+    gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.45);
+
+    osc.connect(gain);
+    gain.connect(audio.destination);
+    osc.start(noteStart);
+    osc.stop(noteStart + 0.45);
+  });
+}
+

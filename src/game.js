@@ -29,6 +29,8 @@ import {
   playCountdownTick,
   playRecordBrokenSound,
   playLetterCollectSound,
+  playThiefPanicSound,
+  playGemCollectSound,
   startMusic,
   stopMusic,
   setMuted,
@@ -37,6 +39,7 @@ import {
 const shell = document.querySelector('#gameShell');
 const canvas3d = document.querySelector('#scene3d');
 const $ = id => document.getElementById(id);
+const lerp = (a, b, t) => a + (b - a) * Math.max(0, Math.min(1, t));
 
 const screens = {
   start: $('startScreen'),
@@ -217,6 +220,19 @@ const game = {
   multiplier: 0,
   invincible: 0,
 
+  // Talking Tom Gold Run - Thief Pursuit State
+  thief: {
+    distance: 28,
+    lane: 1,
+    y: 0,
+    vy: 0,
+    panic: 0,
+    lookBackTimer: 0,
+    dropCooldown: 2.5,
+    laneTimer: 2.0,
+  },
+  gems: 0,
+
   coinCombo: 0,
   coinComboTimer: 0,
   toastTimer: 0,
@@ -240,26 +256,6 @@ function updateHeaderStats() {
   if (rankMult) rankMult.textContent = `x${profile.multiplier}`;
 }
 
-function updateWordHuntHUD() {
-  const bar = $('wordHuntBar');
-  if (!bar) return;
-  if (game.state !== 'playing') {
-    bar.hidden = true;
-    return;
-  }
-  bar.hidden = false;
-  ['D', 'A', 'S', 'H'].forEach(letter => {
-    const el = $('huntLetter_' + letter);
-    if (el) {
-      if (game.collectedLetters && game.collectedLetters.has(letter)) {
-        el.classList.add('collected');
-      } else {
-        el.classList.remove('collected');
-      }
-    }
-  });
-}
-
 function showScreen(name) {
   for (const [key, element] of Object.entries(screens)) {
     if (element) element.hidden = key !== name;
@@ -268,7 +264,6 @@ function showScreen(name) {
   $('hud').hidden = !isPlaying;
   $('touchHint').hidden = !isPlaying || game.width > 760;
   $('hoverboardBtn').hidden = !isPlaying;
-  updateWordHuntHUD();
 
   game.state = name;
   shell.dataset.state = name;
@@ -780,29 +775,6 @@ function spawnObjectCluster() {
     });
   }
 
-  // 0b. Daily Word Hunt Letter Spawning ('D', 'A', 'S', 'H')
-  const letterMilestones = [
-    { char: 'D', dist: 110 },
-    { char: 'A', dist: 280 },
-    { char: 'S', dist: 480 },
-    { char: 'H', dist: 720 },
-  ];
-  for (const m of letterMilestones) {
-    if (!game.spawnedLetters[m.char] && game.spawnAt >= m.dist) {
-      game.spawnedLetters[m.char] = true;
-      const letterLane = Math.floor(Math.random() * 3);
-      game.objects.push({
-        kind: 'letter',
-        type: 'letter_' + m.char,
-        char: m.char,
-        lane: letterLane,
-        distance: game.spawnAt,
-        hit: false,
-      });
-      break;
-    }
-  }
-
   const roll = Math.random();
 
   // 1. Train Encounter
@@ -855,13 +827,20 @@ function spawnObjectCluster() {
     }
     game.spawnAt += 16 + Math.random() * 6;
   }
-  // 5. Mystery Box!
-  else if (roll < 0.90) {
+  // 5. Mystery Box! (Rare reward: minimum 350m apart)
+  else if (roll < 0.88 && (game.spawnAt - (game.lastMysteryBoxDist || -350) >= 350)) {
+    game.lastMysteryBoxDist = game.spawnAt;
     const lane = Math.floor(Math.random() * 3);
     game.objects.push({ kind: 'mysteryBox', type: 'mysteryBox', lane, distance: game.spawnAt, hit: false });
     game.spawnAt += 16 + Math.random() * 6;
   }
-  // 6. Power-Up Pickups
+  // 6. Sacred Jungle Precision Gem (The Stolen Gem dropped along the track!)
+  else if (roll < 0.93) {
+    const lane = Math.floor(Math.random() * 3);
+    game.objects.push({ kind: 'sacredGem', type: 'sacredGem', lane, distance: game.spawnAt, hit: false });
+    game.spawnAt += 16 + Math.random() * 6;
+  }
+  // 7. Power-Up Pickups
   else {
     const powerups = ['magnet', 'hoverboard', 'jetpack', 'sneakers', 'multiplier'];
     const selected = powerups[Math.floor(Math.random() * powerups.length)];
@@ -886,6 +865,7 @@ function startRun() {
   game.score = 0;
   game.coins = 0;
   game.mysteryBoxesInRun = 0;
+  game.lastMysteryBoxDist = -350;
   game.speed = 14;
   game.objects = [];
   game.spawnAt = 30;
@@ -902,19 +882,28 @@ function startRun() {
   game.multiplier = 0;
   game.invincible = 0;
 
-  // Word Hunt and High Score Arch
-  game.collectedLetters = new Set();
-  game.spawnedLetters = { D: false, A: false, S: false, H: false };
-  game.wordHuntCompleted = false;
+  // High Score Arch
   game.highScoreDist = Number(localStorage.getItem('jungle-dash-best-dist') || 0);
   game.archSpawned = false;
   game.passedHighScore = false;
 
+  // Talking Tom Gold Run - Reset Thief & Gems
+  game.thief = {
+    distance: 28,
+    lane: 1,
+    y: 0,
+    vy: 0,
+    panic: 0,
+    lookBackTimer: 0,
+    dropCooldown: 2.2,
+    laneTimer: 2.0,
+  };
+  game.gems = 0;
+
   $('mysteryRewardCard').hidden = true;
   showScreen('playing');
-  toast('READY... GO!');
+  toast('🚨 CHASE THE THIEF! RECLAIM THE SACRED STONE!');
   updatePowerupsHUD();
-  updateWordHuntHUD();
 }
 
 function endRun() {
@@ -940,8 +929,9 @@ function endRun() {
   $('finalScore').textContent = finalScore.toLocaleString();
   $('finalDistance').textContent = Math.floor(game.distance).toLocaleString();
   $('finalCoins').textContent = game.coins.toLocaleString();
+  const finalGemsEl = $('finalGems');
+  if (finalGemsEl) finalGemsEl.textContent = (game.gems || 0).toLocaleString();
   $('bestStart').textContent = best.toLocaleString();
-  updateWordHuntHUD();
 
   if (game.mysteryBoxesInRun > 0) {
     $('mysteryRewardCard').hidden = false;
@@ -1024,31 +1014,134 @@ function update(dt) {
     }
   }
 
+  // 3B. TALKING TOM GOLD RUN - THIEF CHASE DYNAMICS
+  const thief = game.thief;
+  if (thief) {
+    const gap = thief.distance - game.distance;
+
+    // Dynamic Pursuit Velocity
+    let thiefSpeed = game.speed;
+    if (game.jetpack > 0 || game.headstart > 0) {
+      thiefSpeed = game.speed * 0.72; // Player rapidly catches up!
+    } else if (gap > 32) {
+      thiefSpeed = game.speed * 0.92; // Thief slows slightly to stay in view
+    } else if (gap < 18) {
+      thiefSpeed = game.speed * 1.05; // Thief pushes forward nervously
+    }
+    thief.distance += thiefSpeed * dt;
+
+    // Proximity Encounter: Player closes within 16 meters!
+    if (gap < 16.0) {
+      if (thief.panic <= 0) {
+        thief.panic = 1.8;
+        thief.lookBackTimer = 2.2;
+        playThiefPanicSound();
+
+        // Thief drops Sacred Precision Stone or Gold Bar Cluster!
+        const dropKind = Math.random() < 0.65 ? 'sacredGem' : 'coin';
+        game.objects.push({
+          kind: dropKind,
+          type: dropKind,
+          lane: thief.lane,
+          distance: thief.distance - 2.5,
+          hit: false,
+        });
+
+        // Additional gold trail
+        for (let i = 1; i <= 2; i++) {
+          game.objects.push({
+            kind: 'coin',
+            type: 'coin',
+            lane: thief.lane,
+            distance: thief.distance - 2.5 - i * 2.0,
+            hit: false,
+          });
+        }
+
+        spawnParticles(0, 1.2, 0, 0x00e676, 20, 4.0);
+        toast('🚨 CLOSING IN! THE THIEF DROPPED SACRED LOOT!');
+        thief.distance += 9.0;
+      }
+    }
+
+    // Periodic dropped gold bar along the trail
+    thief.dropCooldown -= dt;
+    if (thief.dropCooldown <= 0) {
+      thief.dropCooldown = 2.2 + Math.random() * 2.2;
+      game.objects.push({
+        kind: 'coin',
+        type: 'coin',
+        lane: thief.lane,
+        distance: thief.distance - 2.0,
+        hit: false,
+      });
+    }
+
+    // Smart Lane Switching: Thief dodges trains and hurdles ahead
+    thief.laneTimer -= dt;
+    if (thief.laneTimer <= 0) {
+      thief.laneTimer = 2.2 + Math.random() * 2.5;
+
+      const candidateLanes = [0, 1, 2].filter(l => l !== thief.lane);
+      let bestLane = candidateLanes[Math.floor(Math.random() * candidateLanes.length)];
+      for (const cl of candidateLanes) {
+        const hasTrain = game.objects.some(o => o.kind === 'train' && o.lane === cl && Math.abs(o.distance - thief.distance) < 18);
+        if (!hasTrain) {
+          bestLane = cl;
+          break;
+        }
+      }
+      thief.lane = bestLane;
+      if (Math.random() < 0.45) thief.lookBackTimer = 1.4;
+    }
+
+    // Hurdle leap AI: Thief jumps over low hurdles in his lane
+    const hurdleAhead = game.objects.some(
+      o => (o.kind === 'obstacle' && o.type === 'hurdle') && o.lane === thief.lane && Math.abs(o.distance - thief.distance) < 4.5
+    );
+    if (hurdleAhead && thief.y <= 0.05 && thief.vy <= 0) {
+      thief.vy = 8.5;
+    }
+
+    // Gravity for thief
+    if (thief.y > 0 || thief.vy !== 0) {
+      thief.vy -= 28 * dt;
+      thief.y = Math.max(0, thief.y + thief.vy * dt);
+      if (thief.y <= 0) {
+        thief.y = 0;
+        thief.vy = 0;
+      }
+    }
+
+    // Timers
+    if (thief.panic > 0) thief.panic = Math.max(0, thief.panic - dt);
+    if (thief.lookBackTimer > 0) thief.lookBackTimer = Math.max(0, thief.lookBackTimer - dt);
+
+    // Keep thief strictly ahead of player
+    thief.distance = Math.max(thief.distance, game.distance + 12.0);
+  }
+
   // 4. VERTICALITY & TRAIN ROOF RUNNING RESOLUTION
   let currentGroundY = 0;
   let onRamp = false;
 
-  if (game.jetpack > 0 || game.headstart > 0) {
-    currentGroundY = 5.8;
-  } else {
-    for (const obj of game.objects) {
-      if (obj.kind === 'train' && obj.lane === game.lane) {
-        const halfLen = TRAIN_LENGTH * 0.5;
-        const rampStart = obj.distance - (halfLen + RAMP_LENGTH);
-        const rampEnd = obj.distance - halfLen;
-        const roofEnd = obj.distance + halfLen;
+  for (const obj of game.objects) {
+    if (obj.kind === 'train' && obj.lane === game.lane) {
+      const halfLen = TRAIN_LENGTH * 0.5;
+      const rampStart = obj.distance - (halfLen + RAMP_LENGTH);
+      const rampEnd = obj.distance - halfLen;
+      const roofEnd = obj.distance + halfLen;
 
-        // Player ascending the ramp smoothly
-        if (obj.hasRamp && game.distance >= rampStart && game.distance < rampEnd) {
-          const progress = (game.distance - rampStart) / RAMP_LENGTH;
-          currentGroundY = Math.max(currentGroundY, progress * TRAIN_HEIGHT);
-          onRamp = true;
-        }
-        // Player running on top of the train roof
-        else if (game.distance >= rampEnd && game.distance <= roofEnd) {
-          if (obj.hasRamp || game.y >= TRAIN_HEIGHT - 0.45) {
-            currentGroundY = Math.max(currentGroundY, TRAIN_HEIGHT);
-          }
+      // Player ascending the ramp smoothly
+      if (obj.hasRamp && game.distance >= rampStart && game.distance < rampEnd) {
+        const progress = (game.distance - rampStart) / RAMP_LENGTH;
+        currentGroundY = Math.max(currentGroundY, progress * TRAIN_HEIGHT);
+        onRamp = true;
+      }
+      // Player running on top of the train roof
+      else if (game.distance >= rampEnd && game.distance <= roofEnd) {
+        if (obj.hasRamp || game.y >= TRAIN_HEIGHT - 0.45) {
+          currentGroundY = Math.max(currentGroundY, TRAIN_HEIGHT);
         }
       }
     }
@@ -1058,7 +1151,12 @@ function update(dt) {
 
   // Gravity & vertical movement
   if (game.jetpack > 0 || game.headstart > 0) {
-    game.y = THREE.MathUtils.lerp(game.y, currentGroundY, dt * 6);
+    let flightAlt = 5.8;
+    if (game.jetpack > 0 && game.jetpack < 0.8) {
+      const descendRatio = game.jetpack / 0.8;
+      flightAlt = currentGroundY + (5.8 - currentGroundY) * descendRatio;
+    }
+    game.y = lerp(game.y, flightAlt, Math.min(1, dt * 9));
     game.vy = 0;
   } else {
     // If running smoothly up the ramp and not jumping, stick directly to the ramp incline without jitter!
@@ -1113,6 +1211,35 @@ function update(dt) {
       continue;
     }
 
+    // SACRED JUNGLE PRECISION STONE (The Stolen Gem!)
+    if (obj.kind === 'sacredGem') {
+      const isSuperMagnet = game.magnet > 0 || game.headstart > 0 || game.jetpack > 0;
+      const gemY = obj.roof ? TRAIN_HEIGHT : 0;
+
+      if (isSuperMagnet && Math.abs(relDist) < 14) {
+        if (relDist > 0) {
+          obj.lane = game.lane;
+        }
+      }
+
+      const vertDist = Math.abs((game.y + 0.85) - gemY);
+      const inRange = (obj.lane === game.lane && Math.abs(relDist) < 1.4 && vertDist < 2.5);
+
+      if (inRange) {
+        obj.hit = true;
+        game.gems = (game.gems || 0) + 1;
+        const gemScore = 250 * (game.multiplier > 0 ? 2 : 1);
+        game.score += gemScore;
+        addBankCoins(15);
+        playGemCollectSound();
+        triggerCameraShake(0.35);
+        spawnParticles(0, gemY + 1.2, 0, 0x00e676, 24, 4.5);
+        spawnParticles(0, gemY + 1.2, 0, 0xffd54f, 15, 3.5);
+        toast('💎 PRECISION STONE RECOVERED! (+250)');
+      }
+      continue;
+    }
+
     // MYSTERY BOX
     if (obj.kind === 'mysteryBox') {
       if (obj.lane === game.lane && Math.abs(relDist) < 1.2) {
@@ -1138,7 +1265,6 @@ function update(dt) {
           triggerCameraShake(0.3);
           spawnParticles(0, game.y + 1.0, 0, 0xffea00, 18, 3.8);
           toast(`✨ LETTER "${char}" COLLECTED!`);
-          updateWordHuntHUD();
 
           if (game.collectedLetters.size === 4 && !game.wordHuntCompleted) {
             game.wordHuntCompleted = true;
@@ -1257,6 +1383,8 @@ function update(dt) {
   $('score').textContent = Math.floor(game.score).toLocaleString();
   $('distance').textContent = Math.floor(game.distance).toLocaleString();
   $('coins').textContent = game.coins.toLocaleString();
+  const gemsEl = $('gems');
+  if (gemsEl) gemsEl.textContent = (game.gems || 0).toLocaleString();
   updatePowerupsHUD();
 }
 
@@ -1310,7 +1438,8 @@ function loop(now) {
     game.objects,
     game.distance,
     now / 1000,
-    dt
+    dt,
+    game.thief
   );
 
   requestAnimationFrame(loop);
