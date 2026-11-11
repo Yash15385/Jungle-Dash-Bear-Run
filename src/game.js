@@ -23,13 +23,13 @@ import {
   playChaChing,
   playFanfare,
   playMysteryBoxOpen,
+  playWhistleSound,
   playReviveSound,
-  playCloseCallSound,
   playRocketBoostSound,
   playCountdownTick,
   playRecordBrokenSound,
   playLetterCollectSound,
-  playThiefPanicSound,
+  playSacredLootSound,
   playGemCollectSound,
   startMusic,
   stopMusic,
@@ -154,7 +154,6 @@ function trackMissionEvent(type, amount = 1) {
     if (m.current >= m.target) {
       m.done = true;
       changed = true;
-      toast(`🎯 MISSION COMPLETE: ${m.desc}!`);
       playFanfare();
     }
   }
@@ -162,7 +161,6 @@ function trackMissionEvent(type, amount = 1) {
   if (activeMissions.every(m => m.done)) {
     profile.multiplier++;
     saveProfile(profile);
-    toast(`⭐ LEVEL UP! MULTIPLIER NOW x${profile.multiplier}!`);
     playFanfare();
     const nextOffset = (profile.multiplier - 1) * 3;
     activeMissions = [
@@ -235,8 +233,7 @@ const game = {
 
   coinCombo: 0,
   coinComboTimer: 0,
-  toastTimer: 0,
-  closeCallCooldown: 0,
+  sacredLootTimer: 0,
 };
 
 // Initial 3D Character & Hoverboard Customization
@@ -284,24 +281,28 @@ function showScreen(name) {
   } else {
     stopMusic();
   }
+
+  if (!isPlaying) {
+    const lootEl = $('sacredLootBanner');
+    if (lootEl) {
+      lootEl.classList.remove('show');
+      lootEl.hidden = true;
+    }
+  }
 }
 
-function toast(message) {
-  const el = $('toast');
-  if (!el) return;
-  el.textContent = message;
-  el.classList.add('show');
-  clearTimeout(game.toastTimer);
-  game.toastTimer = setTimeout(() => el.classList.remove('show'), 1300);
-}
-
-function showCloseCall() {
-  const banner = $('closeCallBanner');
+function showSacredLootBanner() {
+  const banner = $('sacredLootBanner');
   if (!banner) return;
   banner.hidden = false;
-  playCloseCallSound();
-  triggerCameraShake(0.25);
-  setTimeout(() => (banner.hidden = true), 800);
+  banner.classList.remove('show');
+  void banner.offsetWidth;
+  banner.classList.add('show');
+  clearTimeout(game.sacredLootTimer);
+  game.sacredLootTimer = setTimeout(() => {
+    banner.classList.remove('show');
+    banner.hidden = true;
+  }, 2050);
 }
 
 function updatePowerupsHUD() {
@@ -333,7 +334,6 @@ function updatePowerupsHUD() {
 function activateHeadstart() {
   if (game.state !== 'playing' || game.headstart > 0) return;
   if (profile.headstarts <= 0 && bankCoins < 100) {
-    toast('NEED 100 COINS FOR HEADSTART!');
     return;
   }
   if (profile.headstarts > 0) profile.headstarts--;
@@ -345,7 +345,6 @@ function activateHeadstart() {
   game.speed = 46.0; // Supersonic launch
   playRocketBoostSound();
   triggerCameraShake(0.5);
-  toast('🚀 SUPER HEADSTART BOOST!');
   updatePowerupsHUD();
 }
 $('headstartBtn').addEventListener('click', activateHeadstart);
@@ -398,7 +397,6 @@ $('saveMeBtn').addEventListener('click', () => {
   } else if (bankCoins >= coinCost) {
     bankCoins -= coinCost;
   } else {
-    toast('NOT ENOUGH KEYS OR COINS!');
     endRun();
     return;
   }
@@ -414,7 +412,6 @@ $('saveMeBtn').addEventListener('click', () => {
   triggerCameraShake(0.5);
   spawnParticles(0, 1.2, 0, 0x76ff03, 30, 6.0);
   showScreen('playing');
-  toast('⚡ RESURRECTED! KEEP RUNNING!');
 });
 
 $('skipSaveMeBtn').addEventListener('click', () => {
@@ -511,7 +508,7 @@ function renderShop() {
 }
 
 window.buyChar = (id, price) => {
-  if (bankCoins < price) return toast('NEED MORE COINS!');
+  if (bankCoins < price) return;
   bankCoins -= price;
   profile.unlockedChars.push(id);
   profile.char = id;
@@ -528,7 +525,7 @@ window.equipChar = id => {
   renderShop();
 };
 window.buyBoard = (id, price) => {
-  if (bankCoins < price) return toast('NEED MORE COINS!');
+  if (bankCoins < price) return;
   bankCoins -= price;
   profile.unlockedBoards.push(id);
   profile.board = id;
@@ -545,7 +542,7 @@ window.equipBoard = id => {
   renderShop();
 };
 window.buyHoverboards = price => {
-  if (bankCoins < price) return toast('NEED MORE COINS!');
+  if (bankCoins < price) return;
   bankCoins -= price;
   profile.hoverboardCount += 3;
   saveProfile(profile);
@@ -553,7 +550,7 @@ window.buyHoverboards = price => {
   renderShop();
 };
 window.buyKeys = price => {
-  if (bankCoins < price) return toast('NEED MORE COINS!');
+  if (bankCoins < price) return;
   bankCoins -= price;
   profile.keys += 2;
   saveProfile(profile);
@@ -561,7 +558,7 @@ window.buyKeys = price => {
   renderShop();
 };
 window.upgradeMagnet = price => {
-  if (bankCoins < price) return toast('NEED MORE COINS!');
+  if (bankCoins < price) return;
   bankCoins -= price;
   profile.magnetLvl++;
   saveProfile(profile);
@@ -569,7 +566,7 @@ window.upgradeMagnet = price => {
   renderShop();
 };
 window.upgradeJetpack = price => {
-  if (bankCoins < price) return toast('NEED MORE COINS!');
+  if (bankCoins < price) return;
   bankCoins -= price;
   profile.jetpackLvl++;
   saveProfile(profile);
@@ -620,7 +617,6 @@ function activateHoverboard() {
   if (game.state !== 'playing') return;
   if (game.hoverboard > 0) return;
   if (profile.hoverboardCount <= 0) {
-    toast('NO HOVERBOARDS LEFT! BUY MORE IN SHOP!');
     return;
   }
   profile.hoverboardCount--;
@@ -628,7 +624,6 @@ function activateHoverboard() {
   game.hoverboard = 25.0;
   trackMissionEvent('hoverboard', 1);
   playHoverboardSound();
-  toast('🛹 HOVERBOARD ACTIVE!');
   updatePowerupsHUD();
 }
 
@@ -641,14 +636,12 @@ function act(direction) {
   if (direction === 'left') {
     if (game.lane > 0) {
       game.lane--;
-      playLaneChangeSound();
-      checkCloseCall();
+      playLaneChangeSound(-1);
     }
   } else if (direction === 'right') {
     if (game.lane < 2) {
       game.lane++;
-      playLaneChangeSound();
-      checkCloseCall();
+      playLaneChangeSound(1);
     }
   } else if (direction === 'jump') {
     if (game.y <= game.groundY + 0.15) {
@@ -664,19 +657,6 @@ function act(direction) {
     playSlideSound();
     if (game.y > game.groundY) {
       game.vy = -18.0;
-    }
-  }
-}
-
-function checkCloseCall() {
-  if (game.closeCallCooldown > 0) return;
-  for (const obj of game.objects) {
-    const relDist = obj.distance - game.distance;
-    if (Math.abs(relDist) < 2.4 && obj.lane !== game.lane) {
-      game.score += 250;
-      game.closeCallCooldown = 1.2;
-      showCloseCall();
-      break;
     }
   }
 }
@@ -787,7 +767,6 @@ function spawnObjectCluster() {
 
     if (isMoving) {
       playTrainHornSound();
-      toast('HONK! TRAIN INCOMING!');
     }
 
     const openLane = (trainLane + 1 + Math.floor(Math.random() * 2)) % 3;
@@ -874,7 +853,6 @@ function startRun() {
   game.headstart = 0;
   game.onRamp = false;
   game.revivesUsed = 0;
-  game.closeCallCooldown = 0;
   game.magnet = 0;
   game.hoverboard = 0;
   game.jetpack = 0;
@@ -902,7 +880,7 @@ function startRun() {
 
   $('mysteryRewardCard').hidden = true;
   showScreen('playing');
-  toast('🚨 CHASE THE THIEF! RECLAIM THE SACRED STONE!');
+  playWhistleSound();
   updatePowerupsHUD();
 }
 
@@ -1000,7 +978,6 @@ function update(dt) {
   if (game.sneakers > 0) game.sneakers = Math.max(0, game.sneakers - dt);
   if (game.multiplier > 0) game.multiplier = Math.max(0, game.multiplier - dt);
   if (game.invincible > 0) game.invincible = Math.max(0, game.invincible - dt);
-  if (game.closeCallCooldown > 0) game.closeCallCooldown -= dt;
 
   if (game.coinComboTimer > 0) {
     game.coinComboTimer -= dt;
@@ -1035,7 +1012,7 @@ function update(dt) {
       if (thief.panic <= 0) {
         thief.panic = 1.8;
         thief.lookBackTimer = 2.2;
-        playThiefPanicSound();
+        playSacredLootSound();
 
         // Thief drops Sacred Precision Stone or Gold Bar Cluster!
         const dropKind = Math.random() < 0.65 ? 'sacredGem' : 'coin';
@@ -1059,7 +1036,7 @@ function update(dt) {
         }
 
         spawnParticles(0, 1.2, 0, 0x00e676, 20, 4.0);
-        toast('🚨 CLOSING IN! THE THIEF DROPPED SACRED LOOT!');
+        showSacredLootBanner();
         thief.distance += 9.0;
       }
     }
@@ -1235,7 +1212,6 @@ function update(dt) {
         triggerCameraShake(0.35);
         spawnParticles(0, gemY + 1.2, 0, 0x00e676, 24, 4.5);
         spawnParticles(0, gemY + 1.2, 0, 0xffd54f, 15, 3.5);
-        toast('💎 PRECISION STONE RECOVERED! (+250)');
       }
       continue;
     }
@@ -1246,7 +1222,6 @@ function update(dt) {
         obj.hit = true;
         game.mysteryBoxesInRun++;
         playFanfare();
-        toast('🎁 MYSTERY BOX FOUND!');
         spawnParticles(0, 1.2, 0, 0xab47bc, 18, 4.0);
       }
       continue;
@@ -1264,7 +1239,6 @@ function update(dt) {
           playLetterCollectSound(letterIdx);
           triggerCameraShake(0.3);
           spawnParticles(0, game.y + 1.0, 0, 0xffea00, 18, 3.8);
-          toast(`✨ LETTER "${char}" COLLECTED!`);
 
           if (game.collectedLetters.size === 4 && !game.wordHuntCompleted) {
             game.wordHuntCompleted = true;
@@ -1272,7 +1246,6 @@ function update(dt) {
             triggerCameraShake(0.6);
             addBankCoins(500);
             game.mysteryBoxesInRun++;
-            toast('🎉 WORD "DASH" COMPLETED! +500 COINS & MYSTERY BOX!');
             spawnParticles(0, 2.5, 0, 0xffd700, 40, 6.0);
             spawnParticles(0, 2.0, 0, 0x00e5ff, 30, 5.0);
           }
@@ -1287,7 +1260,6 @@ function update(dt) {
         game.passedHighScore = true;
         playRecordBrokenSound();
         triggerCameraShake(0.65);
-        toast('🏆 NEW BEST RECORD BEATEN!');
         spawnParticles(0, 3.0, 0, 0xffd700, 45, 6.5);
         spawnParticles(0, 2.2, 0, 0x00e5ff, 35, 5.5);
         spawnParticles(0, 1.8, 0, 0xff1744, 35, 5.5);
@@ -1304,20 +1276,15 @@ function update(dt) {
 
         if (obj.kind === 'magnet') {
           game.magnet = 10.0 + (profile.magnetLvl - 1) * 3;
-          toast('🧲 COIN MAGNET!');
         } else if (obj.kind === 'hoverboard') {
           profile.hoverboardCount++;
           saveProfile(profile);
-          toast('🛹 +1 HOVERBOARD!');
         } else if (obj.kind === 'jetpack') {
           game.jetpack = 7.0 + (profile.jetpackLvl - 1) * 2;
-          toast('🚀 JETPACK SKY FLIGHT!');
         } else if (obj.kind === 'sneakers') {
           game.sneakers = 14.0;
-          toast('👟 SUPER SNEAKERS!');
         } else if (obj.kind === 'multiplier') {
           game.multiplier = 14.0;
-          toast('⚡ 2X MULTIPLIER!');
         }
         updatePowerupsHUD();
       }
@@ -1396,7 +1363,6 @@ function handleCrash(obstacle) {
     triggerCameraShake(0.5);
     playHoverboardBreakSound();
     spawnParticles(0, 1.2, 0, 0x00e5ff, 20, 5.0);
-    toast('🛡️ HOVERBOARD SAVED YOU!');
     updatePowerupsHUD();
     return;
   }

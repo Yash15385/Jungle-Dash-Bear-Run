@@ -1130,6 +1130,16 @@ function releaseGroup(group) {
 // CAMERA CONTROLLER & SHAKE
 // -------------------------------------------------------------
 let cameraShake = 0;
+const camState = {
+  wasElevated: false,
+  flightBlend: 0,
+  posX: 0,
+  posY: 3.4,
+  posZ: 7.4,
+  lookX: 0,
+  lookY: 1.45,
+  lookZ: -18,
+};
 
 export function triggerCameraShake(intensity = 0.3) {
   cameraShake = Math.max(cameraShake, intensity);
@@ -1452,62 +1462,83 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt, t
   sun.intensity = THREE.MathUtils.lerp(sun.intensity, inTunnel ? 1.0 : 2.6, dt * 2.5);
   ambientFill.intensity = THREE.MathUtils.lerp(ambientFill.intensity, inTunnel ? 1.6 : 0.9, dt * 2.5);
 
-  // 6. DYNAMIC 3D CAMERA (Vantage, Altitude POV, Tilt, Shake & Speed FOV)
+  // 6. DYNAMIC 3D CAMERA (Vantage, Altitude POV, Lockstep Smooth Transition, Shake & Speed FOV)
+  const safeDt = Number.isFinite(dt) ? Math.max(0, Math.min(dt, 0.1)) : 0.016;
+
+  if (playerState.state === 'start') {
+    camState.wasElevated = false;
+    camState.flightBlend = 0;
+  }
+
   const isFlying = Boolean(playerState.jetpackActive || playerState.headstartActive);
-  const isOnTrain = !isFlying && Boolean(playerState.onRamp || (playerState.groundY && playerState.groundY >= 1.8));
+  const groundY = Number(playerState.groundY || 0);
+  const onTrainSurface = !isFlying && Boolean(playerState.onRamp || groundY >= 1.5);
 
-  let targetCamY = 3.4;
-  let targetCamZ = 7.4;
-  let targetLookAtY = 1.45;
-  let lookAtZ = -18;
-
-  if (isFlying) {
-    // Jetpack Sky Flight: High-altitude cinematic aerial POV
-    // Camera ascends and pulls back so runner is in lower-third, leaving clear view of upcoming sky coins & tracks ahead
-    targetCamY = playerMesh.position.y + 4.1;
-    targetCamZ = 9.8;
-    targetLookAtY = playerMesh.position.y + 1.1;
-    lookAtZ = -28;
-  } else if (isOnTrain) {
-    // Train / Bus Roof: Elevated panoramic POV over train roofs
-    // High clearance over player's cap, pulled back slightly to clearly see roof hurdles, train ends & ramps
-    const baseTrainY = playerState.groundY || TRAIN_HEIGHT;
-    targetCamY = baseTrainY + 3.65;
-    targetCamZ = 8.2;
-    targetLookAtY = baseTrainY + 1.55;
-    lookAtZ = -22;
-  } else {
-    // Normal Ground Running & Jumping: Camera remains rock-steady at ground level!
-    // Jumping on the road will NOT shift the camera POV or cause vertical bobbing.
-    targetCamY = 3.4;
-    targetCamZ = 7.4;
-    targetLookAtY = 1.45;
-    lookAtZ = -18;
+  if (onTrainSurface) {
+    camState.wasElevated = true;
+  } else if (!isFlying && playerMesh.position.y <= 0.08) {
+    camState.wasElevated = false;
   }
 
-  const targetCamX = playerMesh.position.x * 0.38;
+  // Base vertical anchor:
+  // - On train/ramp: follows groundY cleanly (0 -> TRAIN_HEIGHT up ramps, steady on train roofs)
+  // - Stepping/jumping off a train: tracks gravity descent from TRAIN_HEIGHT -> 0 smoothly
+  // - Normal ground running/jumping: locked at 0 so road jumps never alter POV
+  const surfaceBaseY = onTrainSurface
+    ? groundY
+    : camState.wasElevated
+      ? Math.min(TRAIN_HEIGHT, Math.max(0, playerMesh.position.y))
+      : 0;
 
-  camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetCamX, Math.min(1, dt * 10));
-  camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetCamY, Math.min(1, dt * 7));
-  camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetCamZ, Math.min(1, dt * 6));
+  const trainBlend = isFlying ? 0 : Math.min(1, surfaceBaseY / TRAIN_HEIGHT);
+  const blendSmooth = 1 - Math.exp(-8 * safeDt);
+  camState.flightBlend = THREE.MathUtils.lerp(camState.flightBlend, isFlying ? 1 : 0, blendSmooth);
 
-  // Dynamic LookAt Point
-  const targetLookAtX = playerMesh.position.x * 0.22;
+  const groundOrTrainCamY = surfaceBaseY + THREE.MathUtils.lerp(3.4, 3.65, trainBlend);
+  const groundOrTrainCamZ = THREE.MathUtils.lerp(7.4, 8.2, trainBlend);
+  const groundOrTrainLookY = surfaceBaseY + THREE.MathUtils.lerp(1.45, 1.55, trainBlend);
+  const groundOrTrainLookZ = THREE.MathUtils.lerp(-18, -22, trainBlend);
 
-  // Camera Shake
+  const flightCamY = playerMesh.position.y + 4.1;
+  const flightCamZ = 9.8;
+  const flightLookY = playerMesh.position.y + 1.1;
+  const flightLookZ = -28;
+
+  const desiredCamX = playerMesh.position.x * 0.38;
+  const desiredCamY = THREE.MathUtils.lerp(groundOrTrainCamY, flightCamY, camState.flightBlend);
+  const desiredCamZ = THREE.MathUtils.lerp(groundOrTrainCamZ, flightCamZ, camState.flightBlend);
+
+  const desiredLookX = playerMesh.position.x * 0.22;
+  const desiredLookY = THREE.MathUtils.lerp(groundOrTrainLookY, flightLookY, camState.flightBlend);
+  const desiredLookZ = THREE.MathUtils.lerp(groundOrTrainLookZ, flightLookZ, camState.flightBlend);
+
+  // Smooth camera position and lookAt target in exact lockstep so pitch glides smoothly without snapping
+  const camSmooth = 1 - Math.exp(-12 * safeDt);
+  camState.posX = THREE.MathUtils.lerp(camState.posX, desiredCamX, camSmooth);
+  camState.posY = THREE.MathUtils.lerp(camState.posY, desiredCamY, camSmooth);
+  camState.posZ = THREE.MathUtils.lerp(camState.posZ, desiredCamZ, camSmooth);
+  camState.lookX = THREE.MathUtils.lerp(camState.lookX, desiredLookX, camSmooth);
+  camState.lookY = THREE.MathUtils.lerp(camState.lookY, desiredLookY, camSmooth);
+  camState.lookZ = THREE.MathUtils.lerp(camState.lookZ, desiredLookZ, camSmooth);
+
+  // Camera Shake (applied after smoothing so shake does not accumulate into camState)
+  let shakeOffsetX = 0;
+  let shakeOffsetY = 0;
   if (cameraShake > 0) {
-    camera.position.x += (Math.random() - 0.5) * cameraShake;
-    camera.position.y += (Math.random() - 0.5) * cameraShake;
-    cameraShake = Math.max(0, cameraShake - dt * 1.5);
+    shakeOffsetX = (Math.random() - 0.5) * cameraShake;
+    shakeOffsetY = (Math.random() - 0.5) * cameraShake;
+    cameraShake = Math.max(0, cameraShake - safeDt * 1.5);
   }
 
-  // Speed FOV expansion (speed sensation, wider during jetpack)
-  const baseFov = isFlying ? 58 : 50;
+  camera.position.set(camState.posX + shakeOffsetX, camState.posY + shakeOffsetY, camState.posZ);
+
+  // Speed FOV expansion (speed sensation, smoothly blended with flight POV)
+  const baseFov = 50 + 8 * camState.flightBlend;
   const targetFov = baseFov + (playerState.speed - 13) * 0.7;
-  camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, dt * 3);
+  camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 1 - Math.exp(-5 * safeDt));
   camera.updateProjectionMatrix();
 
-  camera.lookAt(targetLookAtX, targetLookAtY, lookAtZ);
+  camera.lookAt(camState.lookX, camState.lookY, camState.lookZ);
 
   // Sun shadow camera tracks with player position
   sun.position.x = playerMesh.position.x - 6;
