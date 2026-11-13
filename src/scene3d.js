@@ -785,56 +785,6 @@ function updateParticles(dt) {
 }
 
 // -------------------------------------------------------------
-// PROJECTILE SYSTEM (Returning Kicked Bomb at Boss Train)
-// -------------------------------------------------------------
-const activeProjectiles = [];
-export function launchBombProjectile(startLane, targetDistance, playerDistance, onHit) {
-  const pMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(0.38, 12, 12),
-    mat(0x181a1b, 0.4, 0.7, { emissive: 0xff3d00, emissiveIntensity: 0.8 })
-  );
-  const startX = LANE_X[startLane] || 0;
-  const targetZ = -(targetDistance - playerDistance);
-  pMesh.position.set(startX, 1.0, 0);
-  scene.add(pMesh);
-  activeProjectiles.push({
-    mesh: pMesh,
-    startX,
-    startY: 1.0,
-    startZ: 0,
-    targetX: 0,
-    targetY: 1.8,
-    targetZ,
-    progress: 0,
-    speed: 3.2,
-    onHit,
-  });
-}
-
-function updateProjectiles(dt) {
-  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
-    const proj = activeProjectiles[i];
-    proj.progress += dt * proj.speed;
-    const t = Math.min(1, proj.progress);
-    proj.mesh.position.x = THREE.MathUtils.lerp(proj.startX, proj.targetX, t);
-    proj.mesh.position.y = THREE.MathUtils.lerp(proj.startY, proj.targetY, t) + Math.sin(t * Math.PI) * 2.2;
-    proj.mesh.position.z = THREE.MathUtils.lerp(proj.startZ, proj.targetZ, t);
-    proj.mesh.rotation.x += dt * 18;
-    proj.mesh.rotation.y += dt * 12;
-
-    if (Math.random() < 0.6) {
-      spawnParticles(proj.mesh.position.x, proj.mesh.position.y, proj.mesh.position.z, 0xff5722, 1, 0.9);
-    }
-
-    if (t >= 1.0) {
-      scene.remove(proj.mesh);
-      activeProjectiles.splice(i, 1);
-      if (proj.onHit) proj.onHit();
-    }
-  }
-}
-
-// -------------------------------------------------------------
 // 3D OBSTACLES & TRAIN CONSTRUCTORS
 // -------------------------------------------------------------
 function addMesh(group, geometry, material, position = [0, 0, 0], rotation = [0, 0, 0]) {
@@ -1305,45 +1255,6 @@ function makeMysteryBox() {
   return group;
 }
 
-// TALKING TOM GOLD RUN - BOSS BOMB (Dropped accidentally by bandit, kick back at train!)
-function makeBossBomb() {
-  const group = new THREE.Group();
-  const bombBlackMat = mat(0x181a1b, 0.45, 0.7);
-  const bombCapMat = mat(0xffb300, 0.3, 0.85);
-  const bombFuseMat = mat(0xefebe9, 0.9, 0.1);
-  const sparkMat = new THREE.MeshBasicMaterial({ color: 0xff3d00 });
-  const sparkGlowMat = new THREE.MeshBasicMaterial({ color: 0xffea00 });
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00e676, transparent: true, opacity: 0.75, side: THREE.DoubleSide });
-  const innerRingMat = new THREE.MeshBasicMaterial({ color: 0xffea00, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
-
-  // Spherical bomb body
-  addMesh(group, new THREE.SphereGeometry(0.44, 16, 16), bombBlackMat, [0, 0.58, 0]);
-
-  // Golden collar cap
-  addMesh(group, new THREE.CylinderGeometry(0.12, 0.14, 0.12, 10), bombCapMat, [0, 0.98, 0]);
-
-  // Fuse stem
-  addMesh(group, new THREE.CylinderGeometry(0.03, 0.03, 0.22, 6), bombFuseMat, [0.06, 1.1, 0], [0, 0, -0.35]);
-
-  // Sparking lit flame at tip of fuse
-  const spark = addMesh(group, new THREE.SphereGeometry(0.08, 8, 8), sparkMat, [0.12, 1.2, 0]);
-  spark.userData.isBombSpark = true;
-  addMesh(group, new THREE.SphereGeometry(0.04, 6, 6), sparkGlowMat, [0.12, 1.2, 0]);
-
-  // Pulsing Target Decal on track beneath bomb
-  const targetRing = addMesh(group, new THREE.RingGeometry(0.48, 0.72, 16), ringMat, [0, 0.04, 0], [Math.PI / 2, 0, 0]);
-  targetRing.userData.isBombTargetRing = true;
-  const innerRing = addMesh(group, new THREE.RingGeometry(0.2, 0.32, 16), innerRingMat, [0, 0.05, 0], [Math.PI / 2, 0, 0]);
-  innerRing.userData.isBombInnerRing = true;
-
-  // Upward kick arrow chevron pointing forward
-  const arrow = addMesh(group, new THREE.ConeGeometry(0.2, 0.42, 4), innerRingMat, [0, 0.85, 0.55], [-Math.PI / 2, 0, 0]);
-  arrow.userData.isBombArrow = true;
-
-  group.userData.isBossBomb = true;
-  return group;
-}
-
 // Constructors dictionary
 const constructors = {
   coin: makeCoin,
@@ -1353,7 +1264,6 @@ const constructors = {
   trainRamp: () => makeTrain(true, false),
   trainMoving: () => makeTrain(false, true),
   armoredTrain: makeArmoredTrain,
-  bossBomb: makeBossBomb,
   jump: makeHurdle,
   hurdle: makeHurdle,
   slide: makeHighBarrier,
@@ -1422,9 +1332,8 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt, t
     item.position.z = z;
   }
 
-  // 2. UPDATE ACTIVE 3D PARTICLES & PROJECTILES
+  // 2. UPDATE ACTIVE 3D PARTICLES
   updateParticles(dt);
-  updateProjectiles(dt);
 
   // 3. UPDATE 3D OBSTACLES & COLLECTIBLES
   const activeSet = new Set(objects);
@@ -1511,14 +1420,6 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt, t
       group.rotation.y = timeSeconds * 2.4;
       const baseY = object.roof ? TRAIN_HEIGHT : 0;
       group.position.y = baseY + 0.12 + Math.sin(timeSeconds * 3.5) * 0.14;
-    } else if (object.kind === 'bossBomb') {
-      const pulse = 1.0 + Math.sin(timeSeconds * 10) * 0.12;
-      group.scale.set(pulse, pulse, pulse);
-      const spark = group.children.find(c => c.userData && c.userData.isBombSpark);
-      if (spark) spark.scale.setScalar(1.0 + Math.sin(timeSeconds * 30) * 0.4);
-      const ring = group.children.find(c => c.userData && c.userData.isBombTargetRing);
-      if (ring) ring.scale.setScalar(1.0 + Math.sin(timeSeconds * 8) * 0.15);
-      group.position.y = 0.05 + Math.sin(timeSeconds * 6) * 0.05;
     } else if (['magnet', 'hoverboard', 'jetpack', 'sneakers', 'multiplier'].includes(object.kind)) {
       group.rotation.y = timeSeconds * 2.8;
       group.position.y = 0.15 + Math.sin(timeSeconds * 4) * 0.15;

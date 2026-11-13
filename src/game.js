@@ -4,7 +4,6 @@ import {
   triggerCameraShake,
   spawnParticles,
   setCustomization,
-  launchBombProjectile,
   TRAIN_HEIGHT,
   TRAIN_LENGTH,
   RAMP_LENGTH,
@@ -320,225 +319,6 @@ function showSacredLootBanner(eyebrow = 'BANDIT DROPPED', title = 'SACRED LOOT',
     banner.classList.remove('show');
     banner.hidden = true;
   }, 2350);
-}
-
-// -------------------------------------------------------------
-// TALKING TOM GOLD RUN - BOSS ARMORED TRAIN CHASE BATTLE
-// -------------------------------------------------------------
-function showBossHud() {
-  const hud = $('bossHud');
-  if (hud) {
-    hud.hidden = false;
-    updateBossHealthUI();
-  }
-}
-
-function hideBossHud() {
-  const hud = $('bossHud');
-  if (hud) hud.hidden = true;
-}
-
-function updateBossHealthUI() {
-  const fill = $('bossHealthFill');
-  const hearts = document.querySelectorAll('.boss-heart');
-  const health = Math.max(0, game.bossBattle?.health ?? 3);
-  const max = game.bossBattle?.maxHealth || 3;
-  if (fill) {
-    fill.style.width = `${(health / max) * 100}%`;
-  }
-  hearts.forEach(h => {
-    const idx = parseInt(h.dataset.heart, 10);
-    if (idx <= health) {
-      h.classList.add('active');
-      h.classList.remove('broken');
-    } else {
-      h.classList.remove('active');
-      h.classList.add('broken');
-    }
-  });
-}
-
-function startBossBattle() {
-  game.bossBattle = {
-    active: true,
-    health: 3,
-    maxHealth: 3,
-    trainDist: game.distance + 24,
-    lane: 1,
-    attackTimer: 1.4,
-    bombTimer: 3.2,
-    defeated: false,
-  };
-
-  // Clear upcoming ground obstacles in the immediate 40m arena
-  game.objects = game.objects.filter(o => o.distance < game.distance || o.distance > game.distance + 40);
-
-  // Spawn the active moving Boss Armored Train entity ahead
-  game.objects.push({
-    kind: 'train',
-    type: 'armoredTrain',
-    isBossTrain: true,
-    lane: 1,
-    distance: game.bossBattle.trainDist,
-    length: 22,
-    hit: false,
-  });
-
-  showBossHud();
-  showSacredLootBanner('🚨 BOSS BATTLE! 🚨', 'BANDIT ARMORED TRAIN', 'RETURN THE BOMBS!');
-  playTrainHornSound();
-  triggerCameraShake(0.45);
-}
-
-function updateBossBattle(dt) {
-  const boss = game.bossBattle;
-  if (!boss || !boss.active || boss.defeated) return;
-
-  // Boss Train keeps locked pace ahead of the player at distance + 24m
-  boss.trainDist = game.distance + 24;
-  const bossTrain = game.objects.find(o => o.isBossTrain);
-  if (bossTrain) {
-    bossTrain.distance = boss.trainDist;
-    bossTrain.lane = 1;
-  }
-
-  // Bandit is on the rear platform of the moving train, facing player
-  if (game.thief) {
-    game.thief.lane = 1;
-    game.thief.distance = game.distance + 21;
-    game.thief.y = 1.8;
-    game.thief.vy = 0;
-    game.thief.panic = 1.2;
-    game.thief.lookBackTimer = 3.0;
-  }
-
-  // Bandit Attacks: Throws obstacles (Crates / Hurdles) into lanes
-  boss.attackTimer -= dt;
-  if (boss.attackTimer <= 0) {
-    boss.attackTimer = 1.9 + Math.random() * 0.7;
-
-    const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
-    const count = Math.random() < 0.4 ? 2 : 1;
-    for (let i = 0; i < count; i++) {
-      const atkLane = lanes[i];
-      game.objects.push({
-        kind: 'obstacle',
-        type: Math.random() < 0.5 ? 'crate' : 'hurdle',
-        lane: atkLane,
-        distance: game.distance + 19,
-        hit: false,
-      });
-    }
-    playSlideSound();
-  }
-
-  // Bandit Accidental Drops: BOMBS!
-  boss.bombTimer -= dt;
-  if (boss.bombTimer <= 0) {
-    boss.bombTimer = 3.4 + Math.random() * 1.0;
-
-    const bombLane = Math.floor(Math.random() * 3);
-    game.objects.push({
-      kind: 'bossBomb',
-      type: 'bossBomb',
-      lane: bombLane,
-      distance: game.distance + 20,
-      hit: false,
-    });
-
-    if (boss.health === 3) {
-      showSacredLootBanner('💣 BOMB DROPPED! 💣', 'RUN INTO IT TO KICK!', 'LAUNCH IT AT TRAIN ⬆');
-    }
-  }
-}
-
-function handleBossHit() {
-  const boss = game.bossBattle;
-  if (!boss || !boss.active || boss.defeated) return;
-
-  boss.health--;
-  updateBossHealthUI();
-
-  triggerCameraShake(0.75);
-  playCrashSound();
-  setTimeout(() => playChaChing(), 120);
-
-  const bossTrain = game.objects.find(o => o.isBossTrain);
-  const trainZ = bossTrain ? -(bossTrain.distance - game.distance) : -22;
-  spawnParticles(0, 2.0, trainZ, 0xff3d00, 35, 5.0);
-  spawnParticles(0, 2.0, trainZ, 0xffea00, 25, 4.0);
-
-  if (game.thief) {
-    game.thief.panic = 2.5;
-  }
-
-  if (boss.health > 0) {
-    showSacredLootBanner('💥 DIRECT HIT! 💥', `TRAIN HP: ${boss.health}/3`, 'KEEP RETURNING BOMBS!');
-  } else {
-    defeatBossTrain();
-  }
-}
-
-function defeatBossTrain() {
-  const boss = game.bossBattle;
-  if (!boss) return;
-  boss.defeated = true;
-  boss.active = false;
-
-  triggerCameraShake(0.95);
-  playCrashSound();
-  playFanfare();
-  setTimeout(() => playRecordBrokenSound(), 350);
-
-  const bossTrain = game.objects.find(o => o.isBossTrain);
-  const trainZ = bossTrain ? -(bossTrain.distance - game.distance) : -22;
-  spawnParticles(0, 2.5, trainZ, 0xff3d00, 50, 6.5);
-  spawnParticles(0, 2.0, trainZ, 0xffea00, 45, 5.5);
-  spawnParticles(0, 1.8, trainZ, 0x00e676, 45, 5.5);
-
-  if (bossTrain) bossTrain.hit = true;
-
-  // Catapult bandit into the sky
-  if (game.thief) {
-    game.thief.distance = game.distance + 60;
-    game.thief.y = 0;
-  }
-
-  // MASSIVE LOOT SHOWER!
-  // Cascade 18 gold bars and Sacred Precision Gems across all 3 lanes!
-  for (let i = 0; i < 6; i++) {
-    for (let lane = 0; lane < 3; lane++) {
-      const isGem = (i === 2 && lane === 1);
-      game.objects.push({
-        kind: isGem ? 'sacredGem' : 'coin',
-        type: isGem ? 'sacredGem' : 'coin',
-        lane,
-        distance: game.distance + 8 + i * 2.8,
-        hit: false,
-      });
-    }
-  }
-
-  // Rewards:
-  game.score += 1000;
-  game.coins += 50;
-  game.gems = (game.gems || 0) + 5;
-  game.mysteryBoxesInRun = (game.mysteryBoxesInRun || 0) + 1;
-  trackMissionEvent('gem', 5);
-  trackMissionEvent('coin', 50);
-
-  // Rocket Rush + 4s Invincibility Shield
-  game.invincible = 4.0;
-  game.speed = Math.max(game.speed, 17.5);
-
-  showSacredLootBanner('🏆 TRAIN DESTROYED! 🏆', 'GRAND PRECISION STONE!', '+1000 PTS · MYSTERY BOX!');
-
-  setTimeout(() => {
-    hideBossHud();
-  }, 2400);
-
-  // Schedule next boss battle
-  game.nextBossBattleDist = game.distance + 700 + Math.random() * 200;
 }
 
 function updatePowerupsHUD() {
@@ -1019,8 +799,6 @@ function spawnArmoredTrain(lane, distance) {
 }
 
 function spawnObjectCluster() {
-  if (game.bossBattle?.active) return;
-
   if (game.jetpack > 0 || game.headstart > 0) {
     const waveLane = Math.floor(Math.random() * 3);
     for (let i = 0; i < 5; i++) {
@@ -1049,9 +827,12 @@ function spawnObjectCluster() {
     });
   }
 
-  // 0B. TALKING TOM GOLD RUN - BOSS ARMORED TRAIN CHASE BATTLE
-  if (game.spawnAt >= (game.nextBossBattleDist || 180) && !game.bossBattle?.active && game.jetpack <= 0 && game.headstart <= 0) {
-    startBossBattle();
+  // 0B. Armored Train Mini-Event Showdown (Periodic boss encounter every ~550m-750m)
+  if (game.spawnAt >= (game.nextArmoredTrainDist || 180) && !game.armoredTrainActive && game.jetpack <= 0 && game.headstart <= 0) {
+    game.armoredTrainActive = true;
+    const trainLane = 1; // Center Lane: optimal funneling & cinematic ramp entry
+    spawnArmoredTrain(trainLane, game.spawnAt);
+    game.spawnAt += 42 + 22;
     return;
   }
 
@@ -1177,18 +958,8 @@ function startRun() {
     laneTimer: 2.0,
   };
   game.gems = 0;
-  game.bossBattle = {
-    active: false,
-    health: 3,
-    maxHealth: 3,
-    trainDist: 0,
-    lane: 1,
-    attackTimer: 1.4,
-    bombTimer: 3.2,
-    defeated: false,
-  };
-  game.nextBossBattleDist = 180;
-  hideBossHud();
+  game.nextArmoredTrainDist = 180;
+  game.armoredTrainActive = false;
 
   $('mysteryRewardCard').hidden = true;
   showScreen('playing');
@@ -1198,7 +969,6 @@ function startRun() {
 
 function endRun() {
   game.state = 'over';
-  hideBossHud();
   triggerCameraShake(0.65);
   playCrashSound();
   stopMusic();
@@ -1409,11 +1179,89 @@ function update(dt) {
 
     // Keep thief strictly ahead of player
     thief.distance = Math.max(thief.distance, game.distance + 12.0);
-  }
 
-  // 3C. TALKING TOM GOLD RUN - BOSS BATTLE LOOP
-  if (game.bossBattle?.active && !game.bossBattle.defeated) {
-    updateBossBattle(dt);
+    // Armored Train Boss Coordination & Showdown Climax
+    const activeArmoredTrain = game.objects.find(o => o.type === 'armoredTrain');
+    if (activeArmoredTrain) {
+      const aTrainLen = activeArmoredTrain.length || 42;
+      const aHalfLen = aTrainLen * 0.5;
+      const aNear = activeArmoredTrain.distance - aHalfLen;
+      const aFar = activeArmoredTrain.distance + aHalfLen;
+
+      // 0A. Approaching Armored Train Alert (Distance within 70m)
+      if (!activeArmoredTrain.alerted && (activeArmoredTrain.distance - game.distance) <= 70) {
+        activeArmoredTrain.alerted = true;
+        showSacredLootBanner('🚨 BOSS EVENT 🚨', 'ARMORED TRAIN RAID!', 'BOARD THE ROOF ⬆');
+        playTrainHornSound();
+        triggerCameraShake(0.35);
+      }
+
+      // 0B. Mounting the Ramp Alert
+      if (game.onRamp && !activeArmoredTrain.rampAnnounced) {
+        activeArmoredTrain.rampAnnounced = true;
+        showSacredLootBanner('⚔️ ROOF CHASE ⚔️', 'CORNER THE BANDIT!', 'VAULT THE PIPES!');
+      }
+
+      // When player is nearing or on the armored train, move bandit to the front engine cab roof
+      if (game.distance >= aNear - 35 && game.distance <= aFar + 15) {
+        thief.lane = activeArmoredTrain.lane;
+        thief.y = TRAIN_HEIGHT;
+        thief.vy = 0;
+        if (!activeArmoredTrain.showdownCleared) {
+          thief.distance = Math.max(thief.distance, aFar - 3.0);
+          thief.lookBackTimer = 2.0;
+          thief.panic = 1.8;
+        }
+      }
+
+      // Climax Check: Player reaches the front locomotive cab!
+      const reachedFront = game.distance >= aFar - 5.5;
+      if (!activeArmoredTrain.showdownCleared && reachedFront) {
+        activeArmoredTrain.showdownCleared = true;
+
+        // Rewards: Grand Precision Stone (+500 pts, 25 coins, 3 gems) + Mystery Box!
+        game.score += 500;
+        game.coins += 25;
+        game.gems = (game.gems || 0) + 3;
+        game.mysteryBoxesInRun = (game.mysteryBoxesInRun || 0) + 1;
+        trackMissionEvent('gem', 3);
+        trackMissionEvent('coin', 25);
+
+        // Visual spectacle: emerald crystal and gold particle showers
+        const burstY = game.y >= TRAIN_HEIGHT - 0.45 ? TRAIN_HEIGHT + 1.2 : 1.5;
+        spawnParticles(0, burstY, 0, 0x00e676, 45, 5.0);
+        spawnParticles(0, burstY, 0, 0xffd700, 35, 4.0);
+
+        // Sound celebration
+        playSacredLootSound();
+        setTimeout(() => playChaChing(), 180);
+        setTimeout(() => playFanfare(), 380);
+
+        // Sacred Loot Banner
+        showSacredLootBanner('💎 BANDIT TAKEN DOWN! 💎', 'GRAND PRECISION STONE', '+500 PTS · MYSTERY BOX!');
+
+        // Heroic Springboard Leap Launch off front cowcatcher back down to track
+        if (game.y >= TRAIN_HEIGHT - 0.45) {
+          game.vy = 9.0;
+        }
+        game.invincible = 3.0;
+        triggerCameraShake(0.55);
+
+        // Bandit scrambles ahead in panic into canopy
+        thief.panic = 3.0;
+        thief.lookBackTimer = 3.0;
+        thief.distance = game.distance + 45;
+        thief.y = 0;
+
+        // Schedule next Armored Train encounter
+        game.nextArmoredTrainDist = game.distance + 650 + Math.random() * 200;
+      }
+
+      if (game.distance > aFar + 15) {
+        game.armoredTrainActive = false;
+        thief.y = 0;
+      }
+    }
   }
 
   // 4. VERTICALITY & TRAIN ROOF RUNNING RESOLUTION
@@ -1627,27 +1475,8 @@ function update(dt) {
       continue;
     }
 
-    // BOSS BOMB (Accidentally dropped by bandit - run into it to kick back at train!)
-    if (obj.kind === 'bossBomb') {
-      if (obj.lane === game.lane && Math.abs(relDist) < 1.1) {
-        obj.hit = true;
-        playButtonSound();
-        playJumpSound();
-        spawnParticles(0, 0.8, 0, 0x00e676, 16, 3.2);
-
-        // Kick projectile flying from player towards the boss train!
-        const bossTrain = game.objects.find(o => o.isBossTrain);
-        const targetDist = bossTrain ? bossTrain.distance : game.distance + 24;
-        launchBombProjectile(game.lane, targetDist, game.distance, () => {
-          handleBossHit();
-        });
-      }
-      continue;
-    }
-
     // OBSTACLES & TRAINS
     if (obj.kind === 'train') {
-      if (obj.isBossTrain) continue;
       const trainLen = obj.length || TRAIN_LENGTH;
       const halfLen = trainLen * 0.5;
       const tNear = obj.distance - halfLen;
