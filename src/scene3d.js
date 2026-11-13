@@ -785,6 +785,56 @@ function updateParticles(dt) {
 }
 
 // -------------------------------------------------------------
+// PROJECTILE SYSTEM (Returning Kicked Bomb at Boss Train)
+// -------------------------------------------------------------
+const activeProjectiles = [];
+export function launchBombProjectile(startLane, targetDistance, playerDistance, onHit) {
+  const pMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.38, 12, 12),
+    mat(0x181a1b, 0.4, 0.7, { emissive: 0xff3d00, emissiveIntensity: 0.8 })
+  );
+  const startX = LANE_X[startLane] || 0;
+  const targetZ = -(targetDistance - playerDistance);
+  pMesh.position.set(startX, 1.0, 0);
+  scene.add(pMesh);
+  activeProjectiles.push({
+    mesh: pMesh,
+    startX,
+    startY: 1.0,
+    startZ: 0,
+    targetX: 0,
+    targetY: 1.8,
+    targetZ,
+    progress: 0,
+    speed: 3.2,
+    onHit,
+  });
+}
+
+function updateProjectiles(dt) {
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+    const proj = activeProjectiles[i];
+    proj.progress += dt * proj.speed;
+    const t = Math.min(1, proj.progress);
+    proj.mesh.position.x = THREE.MathUtils.lerp(proj.startX, proj.targetX, t);
+    proj.mesh.position.y = THREE.MathUtils.lerp(proj.startY, proj.targetY, t) + Math.sin(t * Math.PI) * 2.2;
+    proj.mesh.position.z = THREE.MathUtils.lerp(proj.startZ, proj.targetZ, t);
+    proj.mesh.rotation.x += dt * 18;
+    proj.mesh.rotation.y += dt * 12;
+
+    if (Math.random() < 0.6) {
+      spawnParticles(proj.mesh.position.x, proj.mesh.position.y, proj.mesh.position.z, 0xff5722, 1, 0.9);
+    }
+
+    if (t >= 1.0) {
+      scene.remove(proj.mesh);
+      activeProjectiles.splice(i, 1);
+      if (proj.onHit) proj.onHit();
+    }
+  }
+}
+
+// -------------------------------------------------------------
 // 3D OBSTACLES & TRAIN CONSTRUCTORS
 // -------------------------------------------------------------
 function addMesh(group, geometry, material, position = [0, 0, 0], rotation = [0, 0, 0]) {
@@ -866,6 +916,169 @@ export function makeTrain(hasRamp = false, isMoving = false) {
   group.userData.isTrain = true;
   group.userData.isMoving = isMoving;
   group.userData.length = length;
+  return group;
+}
+
+// ARMORED TRAIN (Mini-Event Heavy Locomotive: 3-Carriage Armored Convoy ~42m long)
+export function makeArmoredTrain() {
+  const group = new THREE.Group();
+  const width = 2.3;
+  const height = TRAIN_HEIGHT; // 2.8m
+  const length = 42.0;
+  const halfLen = length * 0.5; // 21.0
+
+  // Heavy Armored Materials
+  const armorBodyMat = mat(0x273138, 0.45, 0.7);
+  const armorDarkPlateMat = mat(0x192126, 0.5, 0.85);
+  const armorTrimMat = mat(0x455560, 0.35, 0.8);
+  const armorHazardYellow = mat(0xfbc02d, 0.35, 0.2);
+  const searchlightMat = new THREE.MeshBasicMaterial({ color: 0xffd54f });
+  const beaconRedMat = new THREE.MeshBasicMaterial({ color: 0xff1744 });
+  const roofWalkwayMat = mat(0x37474f, 0.8, 0.4);
+  const goldVaultEmblemMat = mat(0xffd700, 0.2, 0.9, { emissive: 0xff8f00, emissiveIntensity: 0.35 });
+
+  // Continuous Underchassis Frame
+  addMesh(group, new THREE.BoxGeometry(width + 0.1, 0.35, length), armorDarkPlateMat, [0, 0.35, 0]);
+
+  // Three Heavy Armor Carriages: Rear (z=+14), Middle Vault (z=0), Front Locomotive Engine (z=-14)
+  const carCenters = [14.0, 0.0, -14.0];
+  const carLen = 13.0;
+
+  for (let c = 0; c < carCenters.length; c++) {
+    const cz = carCenters[c];
+    const isEngine = (c === 2);
+    const isVault = (c === 1);
+
+    // Main Carriage Body Box
+    const carHeight = isEngine ? height : height - 0.2;
+    addMesh(group, new THREE.BoxGeometry(width, carHeight - 0.35, carLen - 0.6), armorBodyMat, [0, (carHeight - 0.35) * 0.5 + 0.35, cz]);
+
+    // Reinforced Side Armor Skirts with Rivets
+    for (const side of [-1, 1]) {
+      addMesh(group, new THREE.BoxGeometry(0.12, 1.2, carLen - 1.2), armorDarkPlateMat, [side * (width * 0.5 + 0.05), 1.2, cz]);
+      for (let rz = -carLen * 0.38; rz <= carLen * 0.38; rz += 2.2) {
+        addMesh(group, new THREE.CylinderGeometry(0.06, 0.06, 0.16, 6), armorTrimMat, [side * (width * 0.5 + 0.11), 1.5, cz + rz], [0, 0, Math.PI / 2]);
+        addMesh(group, new THREE.CylinderGeometry(0.06, 0.06, 0.16, 6), armorTrimMat, [side * (width * 0.5 + 0.11), 0.9, cz + rz], [0, 0, Math.PI / 2]);
+      }
+    }
+
+    // Heavy Roof Walkway
+    addMesh(group, new THREE.BoxGeometry(width - 0.2, 0.14, carLen - 0.4), roofWalkwayMat, [0, height + 0.05, cz]);
+
+    // Roof Edge Hazard Rails
+    for (const side of [-1, 1]) {
+      addMesh(group, new THREE.BoxGeometry(0.08, 0.24, carLen - 0.4), armorHazardYellow, [side * (width * 0.5 - 0.1), height + 0.15, cz]);
+    }
+
+    // Roof Grated Walkway Ribs
+    for (let rz = -carLen * 0.42; rz <= carLen * 0.42; rz += 2.2) {
+      addMesh(group, new THREE.BoxGeometry(width - 0.36, 0.08, 0.45), armorDarkPlateMat, [0, height + 0.11, cz + rz]);
+    }
+
+    // Middle Car: Giant Vault Doors with Gold Emblems & Beacons
+    if (isVault) {
+      for (const side of [-1, 1]) {
+        addMesh(group, new THREE.BoxGeometry(0.16, 1.8, 3.2), armorDarkPlateMat, [side * (width * 0.5 + 0.04), 1.4, cz]);
+        addMesh(group, new THREE.BoxGeometry(0.18, 0.3, 2.8), armorTrimMat, [side * (width * 0.5 + 0.06), 1.4, cz]);
+        addMesh(group, new THREE.BoxGeometry(0.18, 1.4, 0.3), armorTrimMat, [side * (width * 0.5 + 0.06), 1.4, cz]);
+        addMesh(group, new THREE.CylinderGeometry(0.25, 0.25, 0.2, 8), goldVaultEmblemMat, [side * (width * 0.5 + 0.08), 1.4, cz], [0, 0, Math.PI / 2]);
+      }
+      addMesh(group, new THREE.CylinderGeometry(0.12, 0.15, 0.25, 8), searchlightMat, [0, height + 0.25, cz]);
+    }
+
+    // Couplings between cars
+    if (c < carCenters.length - 1) {
+      const bridgeZ = cz - carLen * 0.5 - 0.5;
+      addMesh(group, new THREE.BoxGeometry(width - 0.4, height - 0.6, 1.1), armorDarkPlateMat, [0, height * 0.45, bridgeZ]);
+      addMesh(group, new THREE.BoxGeometry(width - 0.5, 0.12, 1.2), roofWalkwayMat, [0, height + 0.04, bridgeZ]);
+    }
+  }
+
+  // Rear Incline Entrance Ramp (z = +halfLen)
+  const rearZ = halfLen;
+  const rampLength = RAMP_LENGTH;
+  const rampAngle = Math.atan2(height, rampLength);
+  const rampHypot = Math.hypot(height, rampLength);
+  addMesh(
+    group,
+    new THREE.BoxGeometry(width - 0.15, 0.14, rampHypot),
+    rampMat,
+    [0, height * 0.5, rearZ + rampLength * 0.5],
+    [rampAngle, 0, 0]
+  );
+  for (const side of [-1, 1]) {
+    addMesh(
+      group,
+      new THREE.BoxGeometry(0.1, 0.34, rampHypot),
+      armorHazardYellow,
+      [side * (width * 0.5 - 0.08), height * 0.5 + 0.18, rearZ + rampLength * 0.5],
+      [rampAngle, 0, 0]
+    );
+  }
+  addMesh(group, new THREE.BoxGeometry(0.35, 0.2, 0.2), searchlightMat, [0, height + 0.2, rearZ]);
+
+  // Glowing Neon Entrance Portal Arch at base of ramp (points ⬆ UP to the roof)
+  const neonGreenMat = new THREE.MeshBasicMaterial({ color: 0x76ff03 });
+  for (const side of [-1, 1]) {
+    addMesh(group, new THREE.BoxGeometry(0.12, 1.2, 0.12), neonGreenMat, [side * (width * 0.5 - 0.05), 0.6, rearZ + rampLength]);
+  }
+  addMesh(group, new THREE.BoxGeometry(width - 0.1, 0.14, 0.14), neonGreenMat, [0, 1.2, rearZ + rampLength]);
+  const arrowGeo = new THREE.ConeGeometry(0.24, 0.45, 4);
+  addMesh(group, arrowGeo, neonGreenMat, [0, 1.62, rearZ + rampLength]);
+
+  // Front Locomotive Nose & Cowcatcher (z = -halfLen = -21)
+  const frontZ = -halfLen;
+  const plowGeo = new THREE.ConeGeometry(1.4, 1.8, 4);
+  const plow = addMesh(group, plowGeo, armorDarkPlateMat, [0, 0.7, frontZ - 0.9], [Math.PI / 2, Math.PI / 4, 0]);
+  plow.scale.set(1.4, 1.0, 0.85);
+
+  addMesh(group, new THREE.BoxGeometry(width + 0.1, 0.25, 0.3), armorHazardYellow, [0, 0.55, frontZ - 0.5]);
+  addMesh(group, new THREE.BoxGeometry(width - 0.4, 0.5, 0.15), trainGlassMat, [0, 1.85, frontZ + 0.05]);
+  addMesh(group, new THREE.BoxGeometry(width - 0.2, 0.2, 0.45), armorTrimMat, [0, 2.2, frontZ - 0.15]);
+
+  // Quad Searchlights
+  for (const [sx, sy, sz] of [
+    [-0.75, 1.25, frontZ - 0.1],
+    [0.75, 1.25, frontZ - 0.1],
+    [-0.5, 2.35, frontZ - 0.1],
+    [0.5, 2.35, frontZ - 0.1],
+  ]) {
+    addMesh(group, new THREE.CylinderGeometry(0.2, 0.24, 0.22, 10), armorDarkPlateMat, [sx, sy, sz], [Math.PI / 2, 0, 0]);
+    addMesh(group, new THREE.CylinderGeometry(0.16, 0.16, 0.06, 10), searchlightMat, [sx, sy, sz - 0.1], [Math.PI / 2, 0, 0]);
+  }
+
+  // Dual Locomotive Exhaust Chimneys on Engine Roof
+  for (const sz of [frontZ + 3.2, frontZ + 6.2]) {
+    addMesh(group, new THREE.CylinderGeometry(0.32, 0.38, 1.1, 10), armorDarkPlateMat, [0, height + 0.55, sz]);
+    addMesh(group, new THREE.CylinderGeometry(0.42, 0.42, 0.18, 10), armorTrimMat, [0, height + 1.05, sz]);
+    addMesh(group, new THREE.CylinderGeometry(0.24, 0.24, 0.1, 8), mat(0x111111, 0.9), [0, height + 1.1, sz]);
+  }
+
+  // Jumpable Armored Roof Obstacles (Pipes at z = +7.0 and z = -5.0)
+  for (const hz of [7.0, -5.0]) {
+    addMesh(group, new THREE.CylinderGeometry(0.2, 0.2, width - 0.3, 10), armorTrimMat, [0, height + 0.35, hz], [0, 0, Math.PI / 2]);
+    for (const side of [-1, 1]) {
+      addMesh(group, new THREE.BoxGeometry(0.22, 0.4, 0.35), armorDarkPlateMat, [side * (width * 0.5 - 0.22), height + 0.2, hz]);
+      addMesh(group, new THREE.CylinderGeometry(0.08, 0.08, 0.16, 8), beaconRedMat, [side * (width * 0.5 - 0.22), height + 0.45, hz]);
+    }
+  }
+
+  // Undercarriage Bogies (6 bogies = 24 wheels)
+  const wheelGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.18, 14);
+  const bogieZPositions = [18, 10, 4, -4, -10, -18];
+  for (const bz of bogieZPositions) {
+    for (const side of [-1, 1]) {
+      const wheel = addMesh(group, wheelGeo, armorDarkPlateMat, [side * 1.02, 0.3, bz], [0, 0, Math.PI / 2]);
+      wheel.userData.trainWheel = true;
+    }
+  }
+
+  group.userData.hasRamp = true;
+  group.userData.isTrain = true;
+  group.userData.isArmoredTrain = true;
+  group.userData.length = length;
+  group.userData.rampLength = rampLength;
+
   return group;
 }
 
@@ -1092,6 +1305,45 @@ function makeMysteryBox() {
   return group;
 }
 
+// TALKING TOM GOLD RUN - BOSS BOMB (Dropped accidentally by bandit, kick back at train!)
+function makeBossBomb() {
+  const group = new THREE.Group();
+  const bombBlackMat = mat(0x181a1b, 0.45, 0.7);
+  const bombCapMat = mat(0xffb300, 0.3, 0.85);
+  const bombFuseMat = mat(0xefebe9, 0.9, 0.1);
+  const sparkMat = new THREE.MeshBasicMaterial({ color: 0xff3d00 });
+  const sparkGlowMat = new THREE.MeshBasicMaterial({ color: 0xffea00 });
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00e676, transparent: true, opacity: 0.75, side: THREE.DoubleSide });
+  const innerRingMat = new THREE.MeshBasicMaterial({ color: 0xffea00, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+
+  // Spherical bomb body
+  addMesh(group, new THREE.SphereGeometry(0.44, 16, 16), bombBlackMat, [0, 0.58, 0]);
+
+  // Golden collar cap
+  addMesh(group, new THREE.CylinderGeometry(0.12, 0.14, 0.12, 10), bombCapMat, [0, 0.98, 0]);
+
+  // Fuse stem
+  addMesh(group, new THREE.CylinderGeometry(0.03, 0.03, 0.22, 6), bombFuseMat, [0.06, 1.1, 0], [0, 0, -0.35]);
+
+  // Sparking lit flame at tip of fuse
+  const spark = addMesh(group, new THREE.SphereGeometry(0.08, 8, 8), sparkMat, [0.12, 1.2, 0]);
+  spark.userData.isBombSpark = true;
+  addMesh(group, new THREE.SphereGeometry(0.04, 6, 6), sparkGlowMat, [0.12, 1.2, 0]);
+
+  // Pulsing Target Decal on track beneath bomb
+  const targetRing = addMesh(group, new THREE.RingGeometry(0.48, 0.72, 16), ringMat, [0, 0.04, 0], [Math.PI / 2, 0, 0]);
+  targetRing.userData.isBombTargetRing = true;
+  const innerRing = addMesh(group, new THREE.RingGeometry(0.2, 0.32, 16), innerRingMat, [0, 0.05, 0], [Math.PI / 2, 0, 0]);
+  innerRing.userData.isBombInnerRing = true;
+
+  // Upward kick arrow chevron pointing forward
+  const arrow = addMesh(group, new THREE.ConeGeometry(0.2, 0.42, 4), innerRingMat, [0, 0.85, 0.55], [-Math.PI / 2, 0, 0]);
+  arrow.userData.isBombArrow = true;
+
+  group.userData.isBossBomb = true;
+  return group;
+}
+
 // Constructors dictionary
 const constructors = {
   coin: makeCoin,
@@ -1100,6 +1352,8 @@ const constructors = {
   train: () => makeTrain(false, false),
   trainRamp: () => makeTrain(true, false),
   trainMoving: () => makeTrain(false, true),
+  armoredTrain: makeArmoredTrain,
+  bossBomb: makeBossBomb,
   jump: makeHurdle,
   hurdle: makeHurdle,
   slide: makeHighBarrier,
@@ -1168,8 +1422,9 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt, t
     item.position.z = z;
   }
 
-  // 2. UPDATE ACTIVE 3D PARTICLES
+  // 2. UPDATE ACTIVE 3D PARTICLES & PROJECTILES
   updateParticles(dt);
+  updateProjectiles(dt);
 
   // 3. UPDATE 3D OBSTACLES & COLLECTIBLES
   const activeSet = new Set(objects);
@@ -1199,6 +1454,16 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt, t
     // Moving trains rush toward player!
     if (group.userData.isMoving && group.visible) {
       group.position.z = relZ;
+    }
+
+    // Armored Train locomotive exhaust smoke puff
+    if (group.userData.isArmoredTrain && group.visible) {
+      if (Math.random() < 0.25 && dt > 0) {
+        const chimneyZ = relZ - 17.5;
+        if (chimneyZ > farZ && chimneyZ < roadStartZ + 10) {
+          spawnParticles(lx, TRAIN_HEIGHT + 1.2, chimneyZ, 0x37474f, 1, 0.7);
+        }
+      }
     }
 
     // High Score Finish Arch ribbon status
@@ -1246,6 +1511,14 @@ export function update3DScene(playerState, objects, distance, timeSeconds, dt, t
       group.rotation.y = timeSeconds * 2.4;
       const baseY = object.roof ? TRAIN_HEIGHT : 0;
       group.position.y = baseY + 0.12 + Math.sin(timeSeconds * 3.5) * 0.14;
+    } else if (object.kind === 'bossBomb') {
+      const pulse = 1.0 + Math.sin(timeSeconds * 10) * 0.12;
+      group.scale.set(pulse, pulse, pulse);
+      const spark = group.children.find(c => c.userData && c.userData.isBombSpark);
+      if (spark) spark.scale.setScalar(1.0 + Math.sin(timeSeconds * 30) * 0.4);
+      const ring = group.children.find(c => c.userData && c.userData.isBombTargetRing);
+      if (ring) ring.scale.setScalar(1.0 + Math.sin(timeSeconds * 8) * 0.15);
+      group.position.y = 0.05 + Math.sin(timeSeconds * 6) * 0.05;
     } else if (['magnet', 'hoverboard', 'jetpack', 'sneakers', 'multiplier'].includes(object.kind)) {
       group.rotation.y = timeSeconds * 2.8;
       group.position.y = 0.15 + Math.sin(timeSeconds * 4) * 0.15;

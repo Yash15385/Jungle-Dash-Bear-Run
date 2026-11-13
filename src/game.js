@@ -4,6 +4,7 @@ import {
   triggerCameraShake,
   spawnParticles,
   setCustomization,
+  launchBombProjectile,
   TRAIN_HEIGHT,
   TRAIN_LENGTH,
   RAMP_LENGTH,
@@ -34,6 +35,10 @@ import {
   startMusic,
   stopMusic,
   setMuted,
+  setSfxVolume,
+  getSfxVolume,
+  setMusicVolume,
+  getMusicVolume,
 } from './audio.js';
 
 const shell = document.querySelector('#gameShell');
@@ -53,6 +58,11 @@ const screens = {
 
 const settings = { sound: localStorage.getItem('jungle-dash-sound') !== 'off' };
 setMuted(!settings.sound);
+
+const savedMusicVol = localStorage.getItem('jungle-dash-music-vol');
+const savedSfxVol = localStorage.getItem('jungle-dash-sfx-vol');
+if (savedMusicVol !== null) setMusicVolume(parseFloat(savedMusicVol));
+if (savedSfxVol !== null) setSfxVolume(parseFloat(savedSfxVol));
 
 // -------------------------------------------------------------
 // PERSISTENT PROGRESSION & SHOP STORAGE
@@ -291,9 +301,16 @@ function showScreen(name) {
   }
 }
 
-function showSacredLootBanner() {
+function showSacredLootBanner(eyebrow = 'BANDIT DROPPED', title = 'SACRED LOOT', tag = 'GRAB IT!') {
   const banner = $('sacredLootBanner');
   if (!banner) return;
+  const eyebrowEl = banner.querySelector('.sacred-loot-eyebrow');
+  const titleEl = banner.querySelector('strong');
+  const tagEl = banner.querySelector('.sacred-loot-tag');
+  if (eyebrowEl) eyebrowEl.textContent = eyebrow;
+  if (titleEl) titleEl.textContent = title;
+  if (tagEl) tagEl.textContent = tag;
+
   banner.hidden = false;
   banner.classList.remove('show');
   void banner.offsetWidth;
@@ -302,7 +319,226 @@ function showSacredLootBanner() {
   game.sacredLootTimer = setTimeout(() => {
     banner.classList.remove('show');
     banner.hidden = true;
-  }, 2050);
+  }, 2350);
+}
+
+// -------------------------------------------------------------
+// TALKING TOM GOLD RUN - BOSS ARMORED TRAIN CHASE BATTLE
+// -------------------------------------------------------------
+function showBossHud() {
+  const hud = $('bossHud');
+  if (hud) {
+    hud.hidden = false;
+    updateBossHealthUI();
+  }
+}
+
+function hideBossHud() {
+  const hud = $('bossHud');
+  if (hud) hud.hidden = true;
+}
+
+function updateBossHealthUI() {
+  const fill = $('bossHealthFill');
+  const hearts = document.querySelectorAll('.boss-heart');
+  const health = Math.max(0, game.bossBattle?.health ?? 3);
+  const max = game.bossBattle?.maxHealth || 3;
+  if (fill) {
+    fill.style.width = `${(health / max) * 100}%`;
+  }
+  hearts.forEach(h => {
+    const idx = parseInt(h.dataset.heart, 10);
+    if (idx <= health) {
+      h.classList.add('active');
+      h.classList.remove('broken');
+    } else {
+      h.classList.remove('active');
+      h.classList.add('broken');
+    }
+  });
+}
+
+function startBossBattle() {
+  game.bossBattle = {
+    active: true,
+    health: 3,
+    maxHealth: 3,
+    trainDist: game.distance + 24,
+    lane: 1,
+    attackTimer: 1.4,
+    bombTimer: 3.2,
+    defeated: false,
+  };
+
+  // Clear upcoming ground obstacles in the immediate 40m arena
+  game.objects = game.objects.filter(o => o.distance < game.distance || o.distance > game.distance + 40);
+
+  // Spawn the active moving Boss Armored Train entity ahead
+  game.objects.push({
+    kind: 'train',
+    type: 'armoredTrain',
+    isBossTrain: true,
+    lane: 1,
+    distance: game.bossBattle.trainDist,
+    length: 22,
+    hit: false,
+  });
+
+  showBossHud();
+  showSacredLootBanner('🚨 BOSS BATTLE! 🚨', 'BANDIT ARMORED TRAIN', 'RETURN THE BOMBS!');
+  playTrainHornSound();
+  triggerCameraShake(0.45);
+}
+
+function updateBossBattle(dt) {
+  const boss = game.bossBattle;
+  if (!boss || !boss.active || boss.defeated) return;
+
+  // Boss Train keeps locked pace ahead of the player at distance + 24m
+  boss.trainDist = game.distance + 24;
+  const bossTrain = game.objects.find(o => o.isBossTrain);
+  if (bossTrain) {
+    bossTrain.distance = boss.trainDist;
+    bossTrain.lane = 1;
+  }
+
+  // Bandit is on the rear platform of the moving train, facing player
+  if (game.thief) {
+    game.thief.lane = 1;
+    game.thief.distance = game.distance + 21;
+    game.thief.y = 1.8;
+    game.thief.vy = 0;
+    game.thief.panic = 1.2;
+    game.thief.lookBackTimer = 3.0;
+  }
+
+  // Bandit Attacks: Throws obstacles (Crates / Hurdles) into lanes
+  boss.attackTimer -= dt;
+  if (boss.attackTimer <= 0) {
+    boss.attackTimer = 1.9 + Math.random() * 0.7;
+
+    const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+    const count = Math.random() < 0.4 ? 2 : 1;
+    for (let i = 0; i < count; i++) {
+      const atkLane = lanes[i];
+      game.objects.push({
+        kind: 'obstacle',
+        type: Math.random() < 0.5 ? 'crate' : 'hurdle',
+        lane: atkLane,
+        distance: game.distance + 19,
+        hit: false,
+      });
+    }
+    playSlideSound();
+  }
+
+  // Bandit Accidental Drops: BOMBS!
+  boss.bombTimer -= dt;
+  if (boss.bombTimer <= 0) {
+    boss.bombTimer = 3.4 + Math.random() * 1.0;
+
+    const bombLane = Math.floor(Math.random() * 3);
+    game.objects.push({
+      kind: 'bossBomb',
+      type: 'bossBomb',
+      lane: bombLane,
+      distance: game.distance + 20,
+      hit: false,
+    });
+
+    if (boss.health === 3) {
+      showSacredLootBanner('💣 BOMB DROPPED! 💣', 'RUN INTO IT TO KICK!', 'LAUNCH IT AT TRAIN ⬆');
+    }
+  }
+}
+
+function handleBossHit() {
+  const boss = game.bossBattle;
+  if (!boss || !boss.active || boss.defeated) return;
+
+  boss.health--;
+  updateBossHealthUI();
+
+  triggerCameraShake(0.75);
+  playCrashSound();
+  setTimeout(() => playChaChing(), 120);
+
+  const bossTrain = game.objects.find(o => o.isBossTrain);
+  const trainZ = bossTrain ? -(bossTrain.distance - game.distance) : -22;
+  spawnParticles(0, 2.0, trainZ, 0xff3d00, 35, 5.0);
+  spawnParticles(0, 2.0, trainZ, 0xffea00, 25, 4.0);
+
+  if (game.thief) {
+    game.thief.panic = 2.5;
+  }
+
+  if (boss.health > 0) {
+    showSacredLootBanner('💥 DIRECT HIT! 💥', `TRAIN HP: ${boss.health}/3`, 'KEEP RETURNING BOMBS!');
+  } else {
+    defeatBossTrain();
+  }
+}
+
+function defeatBossTrain() {
+  const boss = game.bossBattle;
+  if (!boss) return;
+  boss.defeated = true;
+  boss.active = false;
+
+  triggerCameraShake(0.95);
+  playCrashSound();
+  playFanfare();
+  setTimeout(() => playRecordBrokenSound(), 350);
+
+  const bossTrain = game.objects.find(o => o.isBossTrain);
+  const trainZ = bossTrain ? -(bossTrain.distance - game.distance) : -22;
+  spawnParticles(0, 2.5, trainZ, 0xff3d00, 50, 6.5);
+  spawnParticles(0, 2.0, trainZ, 0xffea00, 45, 5.5);
+  spawnParticles(0, 1.8, trainZ, 0x00e676, 45, 5.5);
+
+  if (bossTrain) bossTrain.hit = true;
+
+  // Catapult bandit into the sky
+  if (game.thief) {
+    game.thief.distance = game.distance + 60;
+    game.thief.y = 0;
+  }
+
+  // MASSIVE LOOT SHOWER!
+  // Cascade 18 gold bars and Sacred Precision Gems across all 3 lanes!
+  for (let i = 0; i < 6; i++) {
+    for (let lane = 0; lane < 3; lane++) {
+      const isGem = (i === 2 && lane === 1);
+      game.objects.push({
+        kind: isGem ? 'sacredGem' : 'coin',
+        type: isGem ? 'sacredGem' : 'coin',
+        lane,
+        distance: game.distance + 8 + i * 2.8,
+        hit: false,
+      });
+    }
+  }
+
+  // Rewards:
+  game.score += 1000;
+  game.coins += 50;
+  game.gems = (game.gems || 0) + 5;
+  game.mysteryBoxesInRun = (game.mysteryBoxesInRun || 0) + 1;
+  trackMissionEvent('gem', 5);
+  trackMissionEvent('coin', 50);
+
+  // Rocket Rush + 4s Invincibility Shield
+  game.invincible = 4.0;
+  game.speed = Math.max(game.speed, 17.5);
+
+  showSacredLootBanner('🏆 TRAIN DESTROYED! 🏆', 'GRAND PRECISION STONE!', '+1000 PTS · MYSTERY BOX!');
+
+  setTimeout(() => {
+    hideBossHud();
+  }, 2400);
+
+  // Schedule next boss battle
+  game.nextBossBattleDist = game.distance + 700 + Math.random() * 200;
 }
 
 function updatePowerupsHUD() {
@@ -726,7 +962,65 @@ function spawnTrain(lane, hasRamp = false, isMoving = false, distance) {
   }
 }
 
+function spawnArmoredTrain(lane, distance) {
+  const length = 42;
+  game.objects.push({
+    kind: 'train',
+    type: 'armoredTrain',
+    lane,
+    distance,
+    length,
+    hasRamp: true,
+    hit: false,
+    showdownCleared: false,
+    alerted: false,
+  });
+
+  const rampStartDist = distance - (length * 0.5 + RAMP_LENGTH); // distance - 28
+
+  // Lane Funneling: Place roadblock crates in the side lanes at the ramp entrance
+  for (const sideLane of [0, 1, 2]) {
+    if (sideLane !== lane) {
+      game.objects.push({
+        kind: 'obstacle',
+        type: 'solid',
+        lane: sideLane,
+        distance: rampStartDist,
+        hit: false,
+      });
+    }
+  }
+
+  // Golden trail climbing the rear entrance ramp
+  for (let i = 0; i <= 5; i++) {
+    const p = i / 5;
+    game.objects.push({
+      kind: 'coin',
+      lane,
+      distance: distance - (length * 0.5 + RAMP_LENGTH * (1 - p)),
+      hit: false,
+      rampHeight: p * TRAIN_HEIGHT,
+    });
+  }
+
+  // Sparkling Gold Bars & Sacred Gems along the 42m roof walkway
+  for (let rz = -16; rz <= 16; rz += 2.8) {
+    if (Math.abs(rz - 7.0) < 1.4 || Math.abs(rz - (-5.0)) < 1.4) continue;
+    const isGem = Math.abs(rz) % 5.6 < 1.0;
+    game.objects.push({
+      kind: isGem ? 'sacredGem' : 'coin',
+      type: isGem ? 'sacredGem' : 'coin',
+      lane,
+      distance: distance - rz,
+      hit: false,
+      roof: true,
+    });
+  }
+}
+
 function spawnObjectCluster() {
+  if (game.bossBattle?.active) return;
+
   if (game.jetpack > 0 || game.headstart > 0) {
     const waveLane = Math.floor(Math.random() * 3);
     for (let i = 0; i < 5; i++) {
@@ -753,6 +1047,12 @@ function spawnObjectCluster() {
       distance: game.highScoreDist,
       hit: false,
     });
+  }
+
+  // 0B. TALKING TOM GOLD RUN - BOSS ARMORED TRAIN CHASE BATTLE
+  if (game.spawnAt >= (game.nextBossBattleDist || 180) && !game.bossBattle?.active && game.jetpack <= 0 && game.headstart <= 0) {
+    startBossBattle();
+    return;
   }
 
   const roll = Math.random();
@@ -877,6 +1177,18 @@ function startRun() {
     laneTimer: 2.0,
   };
   game.gems = 0;
+  game.bossBattle = {
+    active: false,
+    health: 3,
+    maxHealth: 3,
+    trainDist: 0,
+    lane: 1,
+    attackTimer: 1.4,
+    bombTimer: 3.2,
+    defeated: false,
+  };
+  game.nextBossBattleDist = 180;
+  hideBossHud();
 
   $('mysteryRewardCard').hidden = true;
   showScreen('playing');
@@ -886,6 +1198,7 @@ function startRun() {
 
 function endRun() {
   game.state = 'over';
+  hideBossHud();
   triggerCameraShake(0.65);
   playCrashSound();
   stopMusic();
@@ -1098,20 +1411,27 @@ function update(dt) {
     thief.distance = Math.max(thief.distance, game.distance + 12.0);
   }
 
+  // 3C. TALKING TOM GOLD RUN - BOSS BATTLE LOOP
+  if (game.bossBattle?.active && !game.bossBattle.defeated) {
+    updateBossBattle(dt);
+  }
+
   // 4. VERTICALITY & TRAIN ROOF RUNNING RESOLUTION
   let currentGroundY = 0;
   let onRamp = false;
 
   for (const obj of game.objects) {
     if (obj.kind === 'train' && obj.lane === game.lane) {
-      const halfLen = TRAIN_LENGTH * 0.5;
-      const rampStart = obj.distance - (halfLen + RAMP_LENGTH);
+      const trainLen = obj.length || TRAIN_LENGTH;
+      const halfLen = trainLen * 0.5;
+      const rampLen = obj.rampLength || RAMP_LENGTH;
+      const rampStart = obj.distance - (halfLen + rampLen);
       const rampEnd = obj.distance - halfLen;
       const roofEnd = obj.distance + halfLen;
 
       // Player ascending the ramp smoothly
       if (obj.hasRamp && game.distance >= rampStart && game.distance < rampEnd) {
-        const progress = (game.distance - rampStart) / RAMP_LENGTH;
+        const progress = (game.distance - rampStart) / rampLen;
         currentGroundY = Math.max(currentGroundY, progress * TRAIN_HEIGHT);
         onRamp = true;
       }
@@ -1125,6 +1445,22 @@ function update(dt) {
   }
   game.groundY = currentGroundY;
   game.onRamp = onRamp;
+
+  // Armored Train roof obstacle detection (Pipes at distance - 7 and distance + 5)
+  const activeArmored = game.objects.find(o => o.type === 'armoredTrain');
+  if (activeArmored && game.lane === activeArmored.lane && game.y >= TRAIN_HEIGHT - 0.25) {
+    for (const pipeDist of [activeArmored.distance - 7.0, activeArmored.distance + 5.0]) {
+      if (Math.abs(game.distance - pipeDist) < 0.75) {
+        const cleared = game.y > TRAIN_HEIGHT + 0.45 || game.jetpack > 0 || game.headstart > 0;
+        if (cleared) {
+          trackMissionEvent('jump', 1);
+        } else if (game.invincible <= 0) {
+          handleCrash(activeArmored);
+          break;
+        }
+      }
+    }
+  }
 
   // Gravity & vertical movement
   if (game.jetpack > 0 || game.headstart > 0) {
@@ -1291,9 +1627,29 @@ function update(dt) {
       continue;
     }
 
+    // BOSS BOMB (Accidentally dropped by bandit - run into it to kick back at train!)
+    if (obj.kind === 'bossBomb') {
+      if (obj.lane === game.lane && Math.abs(relDist) < 1.1) {
+        obj.hit = true;
+        playButtonSound();
+        playJumpSound();
+        spawnParticles(0, 0.8, 0, 0x00e676, 16, 3.2);
+
+        // Kick projectile flying from player towards the boss train!
+        const bossTrain = game.objects.find(o => o.isBossTrain);
+        const targetDist = bossTrain ? bossTrain.distance : game.distance + 24;
+        launchBombProjectile(game.lane, targetDist, game.distance, () => {
+          handleBossHit();
+        });
+      }
+      continue;
+    }
+
     // OBSTACLES & TRAINS
     if (obj.kind === 'train') {
-      const halfLen = TRAIN_LENGTH * 0.5;
+      if (obj.isBossTrain) continue;
+      const trainLen = obj.length || TRAIN_LENGTH;
+      const halfLen = trainLen * 0.5;
       const tNear = obj.distance - halfLen;
       const tFar = obj.distance + halfLen;
 
@@ -1344,7 +1700,7 @@ function update(dt) {
   }
 
   // 7. PRUNE DESPAWNED OBJECTS
-  game.objects = game.objects.filter(o => !o.hit && o.distance > game.distance - 12);
+  game.objects = game.objects.filter(o => !o.hit && o.distance > game.distance - (o.length ? o.length * 0.6 + 6 : 14));
 
   // 8. UPDATE HUD VALUES
   $('score').textContent = Math.floor(game.score).toLocaleString();
@@ -1466,6 +1822,35 @@ $('soundToggle').addEventListener('change', event => {
   setMuted(!settings.sound);
   playButtonSound();
 });
+
+const musicSlider = $('musicVolSlider');
+const musicVal = $('musicVolVal');
+if (musicSlider) {
+  musicSlider.value = Math.round(getMusicVolume() * 100);
+  if (musicVal) musicVal.textContent = `${musicSlider.value}%`;
+  musicSlider.addEventListener('input', e => {
+    const v = parseInt(e.target.value, 10) / 100;
+    setMusicVolume(v);
+    localStorage.setItem('jungle-dash-music-vol', v.toString());
+    if (musicVal) musicVal.textContent = `${e.target.value}%`;
+  });
+}
+
+const sfxSlider = $('sfxVolSlider');
+const sfxVal = $('sfxVolVal');
+if (sfxSlider) {
+  sfxSlider.value = Math.round(getSfxVolume() * 100);
+  if (sfxVal) sfxVal.textContent = `${sfxSlider.value}%`;
+  sfxSlider.addEventListener('input', e => {
+    const v = parseInt(e.target.value, 10) / 100;
+    setSfxVolume(v);
+    localStorage.setItem('jungle-dash-sfx-vol', v.toString());
+    if (sfxVal) sfxVal.textContent = `${e.target.value}%`;
+  });
+  sfxSlider.addEventListener('change', () => {
+    playButtonSound();
+  });
+}
 
 // Keyboard controls
 document.addEventListener('keydown', event => {

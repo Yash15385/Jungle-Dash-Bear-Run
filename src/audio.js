@@ -169,11 +169,19 @@ export function setSfxVolume(v) {
   }
 }
 
+export function getSfxVolume() {
+  return sfxVolume;
+}
+
 export function setMusicVolume(v) {
   musicVolume = Math.max(0, Math.min(1, v));
   if (ctx && musicGain && musicRunning && !isMuted) {
     musicGain.gain.setTargetAtTime(musicVolume, ctx.currentTime, 0.05);
   }
+}
+
+export function getMusicVolume() {
+  return musicVolume;
 }
 
 export function setMuted(muted) {

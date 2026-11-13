@@ -30,6 +30,30 @@
 
     <button class="hoverboard-btn" id="hoverboardBtn" hidden><span class="board-icon">🛹</span> HOVERBOARD <small id="hoverboardCount">×3</small></button>
     <button class="headstart-btn" id="headstartBtn" hidden><span class="rocket-icon">🚀</span> HEADSTART <small>+450m</small></button>
+
+    <!-- Talking Tom Gold Run - Boss Battle HUD -->
+    <div class="boss-hud" id="bossHud" hidden role="region" aria-label="Boss Battle Status">
+      <div class="boss-hud-card">
+        <div class="boss-profile">
+          <div class="boss-avatar" aria-hidden="true">🦝</div>
+          <div class="boss-meta">
+            <span class="boss-eyebrow">BOSS EVENT</span>
+            <strong class="boss-name">ARMORED TRAIN</strong>
+          </div>
+        </div>
+        <div class="boss-health-wrap">
+          <div class="boss-health-bar">
+            <div class="boss-health-fill" id="bossHealthFill" style="width: 100%;"></div>
+          </div>
+          <div class="boss-hearts" id="bossHearts">
+            <span class="boss-heart active" data-heart="1">❤️</span>
+            <span class="boss-heart active" data-heart="2">❤️</span>
+            <span class="boss-heart active" data-heart="3">❤️</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="sacred-loot-banner" id="sacredLootBanner" hidden role="status" aria-live="polite">
       <div class="sacred-loot-emblem" aria-hidden="true">💎</div>
       <div class="sacred-loot-copy">
@@ -42,7 +66,7 @@
     <section class="screen start-screen" id="startScreen" aria-labelledby="gameTitle">
       <div class="brand-row">
         <span class="brand-mark">JD</span>
-        <div><p class="eyebrow">TALKING TOM STYLE · GOLD RUN</p><h1 id="gameTitle">Jungle <em>Dash</em></h1></div>
+        <div><p class="eyebrow">ENDLESS RUNNER</p><h1 id="gameTitle">Jungle <em>Dash</em></h1></div>
         <div class="hud-pill coin-pill start-coins" title="Total Bank Coins"><span class="coin-icon">✦</span><strong id="bankCoins">0</strong></div>
         <button class="icon-button settings-top" data-open-settings aria-label="Settings" title="Settings">⚙</button>
       </div>
@@ -150,9 +174,25 @@
     </section>
 
     <section class="screen modal-screen" id="settingsScreen" hidden aria-labelledby="settingsTitle">
-      <div class="modal-card glass-card settings-card"><button class="close-button" id="closeSettings" aria-label="Back">←</button><p class="eyebrow">MAKE IT YOURS</p><h2 id="settingsTitle">Settings</h2>
-        <label class="setting-row"><span><strong>Sound effects</strong><small>Game sounds and pickups</small></span><input type="checkbox" id="soundToggle" checked><span class="switch"></span></label>
-        <div class="setting-help"><strong>OBSTACLE GUIDE</strong><p>Jump over single-height blocks. Tap Up or swipe up at a ladder tower to climb it; tall towers without ladders will hit you. Slide under the raised beams, including the two-level beam.</p></div>
+      <div class="modal-card glass-card settings-card"><button class="close-button" id="closeSettings" aria-label="Back">←</button><p class="eyebrow">AUDIO & PREFERENCES</p><h2 id="settingsTitle">Settings</h2>
+        <label class="setting-row"><span><strong>Master Audio</strong><small>Toggle all sounds and soundtrack</small></span><input type="checkbox" id="soundToggle" checked><span class="switch"></span></label>
+        <div class="setting-slider-group">
+          <div class="slider-row">
+            <div class="slider-header">
+              <span class="slider-label">🎵 &nbsp; Music Volume</span>
+              <strong class="slider-val" id="musicVolVal">45%</strong>
+            </div>
+            <input type="range" id="musicVolSlider" min="0" max="100" value="45" class="custom-slider" aria-label="Music Volume">
+          </div>
+          <div class="slider-row">
+            <div class="slider-header">
+              <span class="slider-label">🔊 &nbsp; Sound Effects (SFX)</span>
+              <strong class="slider-val" id="sfxVolVal">85%</strong>
+            </div>
+            <input type="range" id="sfxVolSlider" min="0" max="100" value="85" class="custom-slider" aria-label="Sound Effects Volume">
+          </div>
+        </div>
+        <div class="setting-help"><strong>OBSTACLE & TRAIN GUIDE</strong><p>Vault obstacles or climb train hazard ramps! Sprint across the <b>Armored Train</b> roof to corner the bandit and reclaim the Grand Precision Stone.</p></div>
         <button class="primary-button" id="settingsDone">DONE</button>
       </div>
     </section>
